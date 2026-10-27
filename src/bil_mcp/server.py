@@ -335,12 +335,14 @@ def _field_catalog() -> list[dict[str, Any]]:
 
 
 # --------------------------------------------------------------- resources
-@mcp.resource("bil://fields", mime_type="application/json", description="Catalog of searchable BIL fields")
+@mcp.resource("bil://fields", title="BIL searchable fields", mime_type="application/json",
+              description="Catalog of searchable BIL fields")
 def fields_resource() -> str:
     return json.dumps(_field_catalog(), indent=1)
 
 
-@mcp.resource("bil://dataset/{bildid}", mime_type="application/json", description="Full metadata of one dataset")
+@mcp.resource("bil://dataset/{bildid}", title="BIL dataset record", mime_type="application/json",
+              description="Full metadata of one dataset")
 async def dataset_resource(bildid: str, ctx: Context) -> str:
     rec = await _client(ctx).retrieve(bildid)
     if rec is None:
