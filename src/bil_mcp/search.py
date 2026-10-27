@@ -149,6 +149,9 @@ async def search(
         notes.append("Substring matching is on: e.g. sex=Male also matches Female. Use match='exact' to be strict.")
     if text and text_mode == "all" and len(text.split()) > 1:
         notes.append("Multi-word text was treated as AND (one fulltext query per word).")
+    if text and text_mode == "any" and len(text.split()) > 1:
+        notes.append("Multi-word text was sent as ONE fulltext query ('+' in the URL is an encoded space); "
+                     "BIL matches datasets containing ANY of the words.")
 
     notes += _zero_hit_hints(stats)
 
