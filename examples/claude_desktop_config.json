@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "bil": {
+      "command": "/ABSOLUTE/PATH/TO/uv",
+      "args": ["--directory", "/ABSOLUTE/PATH/TO/bil_mcp", "run", "bil-mcp"],
+      "env": { "BIL_CACHE_TTL": "3600" }
+    }
+  }
+}

@@ -1,0 +1,349 @@
+{
+ "bildid": "g.8",
+ "doc": {
+  "datacite": {
+   "data": {
+    "attributes": {
+     "alternateIdentifiers": [],
+     "citationCount": 0,
+     "citationsOverTime": [],
+     "container": {},
+     "contentUrl": null,
+     "contributors": [
+      {
+       "affiliation": [
+        "Harvard University, Howard Hughes Medical Institute"
+       ],
+       "contributorType": "ProjectLeader",
+       "familyName": "Zhuang",
+       "givenName": "Xiaowei",
+       "name": "Zhuang, Xiaowei",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-6034-7853",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ],
+       "nameType": "Personal"
+      },
+      {
+       "affiliation": [
+        "Harvard University, Howard Hughes Medical Institute"
+       ],
+       "contributorType": "DataCollector",
+       "familyName": "Zhang",
+       "givenName": "Meng",
+       "name": "Zhang, Meng",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-9753-0635",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ],
+       "nameType": "Personal"
+      },
+      {
+       "affiliation": [
+        "Harvard University, Howard Hughes Medical Institute"
+       ],
+       "contributorType": "ProjectMember",
+       "familyName": "Eichhorn",
+       "givenName": "Stephen",
+       "name": "Eichhorn, Stephen",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-6410-4699",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ],
+       "nameType": "Personal"
+      }
+     ],
+     "created": "2020-08-20T18:27:23.000Z",
+     "creators": [
+      {
+       "affiliation": [
+        "Harvard University, Howard Hughes Medical Institute"
+       ],
+       "familyName": "Zhuang",
+       "givenName": "Xiaowei",
+       "name": "Zhuang, Xiaowei",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-6034-7853",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ],
+       "nameType": "Personal"
+      },
+      {
+       "affiliation": [
+        "Harvard University, Howard Hughes Medical Institute"
+       ],
+       "familyName": "Zhang",
+       "givenName": "Meng",
+       "name": "Zhang, Meng",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-9753-0635",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ],
+       "nameType": "Personal"
+      }
+     ],
+     "dates": [
+      {
+       "date": "2020",
+       "dateInformation": null,
+       "dateType": "Issued"
+      }
+     ],
+     "descriptions": [
+      {
+       "description": "This data collection includes in situ, spatially resolved, gene expression profiling of individual cells in the mouse primary motor cortex by multuplexed error-robust fluorescence in situ hybridization (MERFISH). ~300,000 cells and 258 genes were imaged.",
+       "descriptionType": "Abstract",
+       "lang": null
+      }
+     ],
+     "doi": "10.35077/g.8",
+     "downloadCount": 0,
+     "downloadsOverTime": [],
+     "formats": [],
+     "fundingReferences": [
+      {
+       "awardNumber": "U19-MH-114830",
+       "awardTitle": "A comprehensive whole-brain atlas of cell types in the mouse",
+       "awardUri": null,
+       "funderIdentifier": "https://ror.org/01cwqze88",
+       "funderIdentifierType": "ROR",
+       "funderName": "National Institutes of Health"
+      },
+      {
+       "awardNumber": "U19-MH-114821",
+       "awardTitle": "A comprehensive center for mouse brain cell atlas",
+       "awardUri": null,
+       "funderIdentifier": "https://ror.org/01cwqze88",
+       "funderIdentifierType": "ROR",
+       "funderName": "National Institutes of Health"
+      }
+     ],
+     "geoLocations": [],
+     "identifiers": [],
+     "isActive": true,
+     "language": null,
+     "metadataVersion": 2,
+     "partCount": 0,
+     "partOfCount": 0,
+     "prefix": "10.35077",
+     "publicationYear": 2020,
+     "published": "2020",
+     "publisher": "Brain Image Library",
+     "reason": null,
+     "referenceCount": 0,
+     "registered": "2020-08-20T18:27:23.000Z",
+     "relatedIdentifiers": [
+      {
+       "relatedIdentifier": "10.35077/g.21",
+       "relatedIdentifierType": "DOI",
+       "relatedMetadataScheme": null,
+       "relationType": "IsObsoletedBy",
+       "resourceTypeGeneral": null,
+       "schemeType": null,
+       "schemeUri": null
+      }
+     ],
+     "relatedItems": [],
+     "rightsList": [],
+     "schemaVersion": "http://datacite.org/schema/kernel-4",
+     "sizes": [],
+     "source": "fabricaForm",
+     "state": "findable",
+     "subjects": [],
+     "suffix": "g.8",
+     "titles": [
+      {
+       "lang": null,
+       "title": "A molecularly defined and spatially resolved cell atlas of the mouse primary motor cortex",
+       "titleType": null
+      }
+     ],
+     "types": {
+      "bibtex": "misc",
+      "citeproc": "dataset",
+      "resourceType": "Dataset",
+      "resourceTypeGeneral": "Collection",
+      "ris": "DATA",
+      "schemaOrg": "Dataset"
+     },
+     "updated": "2021-05-17T14:38:16.000Z",
+     "url": "https://doi.brainimagelibrary.org/doi/10.35077/g.8",
+     "version": null,
+     "versionCount": 0,
+     "versionOfCount": 0,
+     "viewCount": 0,
+     "viewsOverTime": [],
+     "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlc291cmNlIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCIgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCBodHRwOi8vc2NoZW1hLmRhdGFjaXRlLm9yZy9tZXRhL2tlcm5lbC00L21ldGFkYXRhLnhzZCI+CiAgPGlkZW50aWZpZXIgaWRlbnRpZmllclR5cGU9IkRPSSI+MTAuMzUwNzcvRy44PC9pZGVudGlmaWVyPgogIDxjcmVhdG9ycz4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5aaHVhbmcsIFhpYW93ZWk8L2NyZWF0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPlhpYW93ZWk8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+Wmh1YW5nPC9mYW1pbHlOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik9SQ0lEIiBzY2hlbWVVUkk9Imh0dHBzOi8vb3JjaWQub3JnIj5odHRwczovL29yY2lkLm9yZy8wMDAwLTAwMDItNjAzNC03ODUzPC9uYW1lSWRlbnRpZmllcj4KICAgICAgPGFmZmlsaWF0aW9uIGFmZmlsaWF0aW9uSWRlbnRpZmllclNjaGVtZT0iUk9SIj5IYXJ2YXJkIFVuaXZlcnNpdHksIEhvd2FyZCBIdWdoZXMgTWVkaWNhbCBJbnN0aXR1dGU8L2FmZmlsaWF0aW9uPgogICAgPC9jcmVhdG9yPgogICAgPGNyZWF0b3I+CiAgICAgIDxjcmVhdG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPlpoYW5nLCBNZW5nPC9jcmVhdG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5NZW5nPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPlpoYW5nPC9mYW1pbHlOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik9SQ0lEIiBzY2hlbWVVUkk9Imh0dHBzOi8vb3JjaWQub3JnIj5odHRwczovL29yY2lkLm9yZy8wMDAwLTAwMDItOTc1My0wNjM1PC9uYW1lSWRlbnRpZmllcj4KICAgICAgPGFmZmlsaWF0aW9uIGFmZmlsaWF0aW9uSWRlbnRpZmllclNjaGVtZT0iUk9SIj5IYXJ2YXJkIFVuaXZlcnNpdHksIEhvd2FyZCBIdWdoZXMgTWVkaWNhbCBJbnN0aXR1dGU8L2FmZmlsaWF0aW9uPgogICAgPC9jcmVhdG9yPgogIDwvY3JlYXRvcnM+CiAgPHRpdGxlcz4KICAgIDx0aXRsZT5BIG1vbGVjdWxhcmx5IGRlZmluZWQgYW5kIHNwYXRpYWxseSByZXNvbHZlZCBjZWxsIGF0bGFzIG9mIHRoZSBtb3VzZSBwcmltYXJ5IG1vdG9yIGNvcnRleDwvdGl0bGU+CiAgPC90aXRsZXM+CiAgPHB1Ymxpc2hlcj5CcmFpbiBJbWFnZSBMaWJyYXJ5PC9wdWJsaXNoZXI+CiAgPHB1YmxpY2F0aW9uWWVhcj4yMDIwPC9wdWJsaWNhdGlvblllYXI+CiAgPHJlc291cmNlVHlwZSByZXNvdXJjZVR5cGVHZW5lcmFsPSJDb2xsZWN0aW9uIj5EYXRhc2V0PC9yZXNvdXJjZVR5cGU+CiAgPGNvbnRyaWJ1dG9ycz4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IlByb2plY3RMZWFkZXIiPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+Wmh1YW5nLCBYaWFvd2VpPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+WGlhb3dlaTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5aaHVhbmc8L2ZhbWlseU5hbWU+CiAgICAgIDxuYW1lSWRlbnRpZmllciBuYW1lSWRlbnRpZmllclNjaGVtZT0iT1JDSUQiIHNjaGVtZVVSST0iaHR0cHM6Ly9vcmNpZC5vcmciPmh0dHBzOi8vb3JjaWQub3JnLzAwMDAtMDAwMi02MDM0LTc4NTM8L25hbWVJZGVudGlmaWVyPgogICAgICA8YWZmaWxpYXRpb24gYWZmaWxpYXRpb25JZGVudGlmaWVyU2NoZW1lPSJST1IiPkhhcnZhcmQgVW5pdmVyc2l0eSwgSG93YXJkIEh1Z2hlcyBNZWRpY2FsIEluc3RpdHV0ZTwvYWZmaWxpYXRpb24+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iRGF0YUNvbGxlY3RvciI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5aaGFuZywgTWVuZzwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPk1lbmc8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+Wmhhbmc8L2ZhbWlseU5hbWU+CiAgICAgIDxuYW1lSWRlbnRpZmllciBuYW1lSWRlbnRpZmllclNjaGVtZT0iT1JDSUQiIHNjaGVtZVVSST0iaHR0cHM6Ly9vcmNpZC5vcmciPmh0dHBzOi8vb3JjaWQub3JnLzAwMDAtMDAwMi05NzUzLTA2MzU8L25hbWVJZGVudGlmaWVyPgogICAgICA8YWZmaWxpYXRpb24gYWZmaWxpYXRpb25JZGVudGlmaWVyU2NoZW1lPSJST1IiPkhhcnZhcmQgVW5pdmVyc2l0eSwgSG93YXJkIEh1Z2hlcyBNZWRpY2FsIEluc3RpdHV0ZTwvYWZmaWxpYXRpb24+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iUHJvamVjdE1lbWJlciI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5FaWNoaG9ybiwgU3RlcGhlbjwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPlN0ZXBoZW48L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+RWljaGhvcm48L2ZhbWlseU5hbWU+CiAgICAgIDxuYW1lSWRlbnRpZmllciBuYW1lSWRlbnRpZmllclNjaGVtZT0iT1JDSUQiIHNjaGVtZVVSST0iaHR0cHM6Ly9vcmNpZC5vcmciPmh0dHBzOi8vb3JjaWQub3JnLzAwMDAtMDAwMi02NDEwLTQ2OTk8L25hbWVJZGVudGlmaWVyPgogICAgICA8YWZmaWxpYXRpb24gYWZmaWxpYXRpb25JZGVudGlmaWVyU2NoZW1lPSJST1IiPkhhcnZhcmQgVW5pdmVyc2l0eSwgSG93YXJkIEh1Z2hlcyBNZWRpY2FsIEluc3RpdHV0ZTwvYWZmaWxpYXRpb24+CiAgICA8L2NvbnRyaWJ1dG9yPgogIDwvY29udHJpYnV0b3JzPgogIDxkYXRlcz4KICAgIDxkYXRlIGRhdGVUeXBlPSJJc3N1ZWQiPjIwMjA8L2RhdGU+CiAgPC9kYXRlcz4KICA8cmVsYXRlZElkZW50aWZpZXJzPgogICAgPHJlbGF0ZWRJZGVudGlmaWVyIHJlbGF0ZWRJZGVudGlmaWVyVHlwZT0iRE9JIiByZWxhdGlvblR5cGU9IklzT2Jzb2xldGVkQnkiPjEwLjM1MDc3L2cuMjE8L3JlbGF0ZWRJZGVudGlmaWVyPgogIDwvcmVsYXRlZElkZW50aWZpZXJzPgogIDxzaXplcy8+CiAgPGZvcm1hdHMvPgogIDx2ZXJzaW9uLz4KICA8ZGVzY3JpcHRpb25zPgogICAgPGRlc2NyaXB0aW9uIGRlc2NyaXB0aW9uVHlwZT0iQWJzdHJhY3QiPlRoaXMgZGF0YSBjb2xsZWN0aW9uIGluY2x1ZGVzIGluIHNpdHUsIHNwYXRpYWxseSByZXNvbHZlZCwgZ2VuZSBleHByZXNzaW9uIHByb2ZpbGluZyBvZiBpbmRpdmlkdWFsIGNlbGxzIGluIHRoZSBtb3VzZSBwcmltYXJ5IG1vdG9yIGNvcnRleCBieSBtdWx0dXBsZXhlZCBlcnJvci1yb2J1c3QgZmx1b3Jlc2NlbmNlIGluIHNpdHUgaHlicmlkaXphdGlvbiAoTUVSRklTSCkuIH4zMDAsMDAwIGNlbGxzIGFuZCAyNTggZ2VuZXMgd2VyZSBpbWFnZWQuPC9kZXNjcmlwdGlvbj4KICA8L2Rlc2NyaXB0aW9ucz4KICA8ZnVuZGluZ1JlZmVyZW5jZXM+CiAgICA8ZnVuZGluZ1JlZmVyZW5jZT4KICAgICAgPGZ1bmRlck5hbWU+TmF0aW9uYWwgSW5zdGl0dXRlcyBvZiBIZWFsdGg8L2Z1bmRlck5hbWU+CiAgICAgIDxmdW5kZXJJZGVudGlmaWVyIGZ1bmRlcklkZW50aWZpZXJUeXBlPSJST1IiPmh0dHBzOi8vcm9yLm9yZy8wMWN3cXplODg8L2Z1bmRlcklkZW50aWZpZXI+CiAgICAgIDxhd2FyZE51bWJlcj5VMTktTUgtMTE0ODMwPC9hd2FyZE51bWJlcj4KICAgICAgPGF3YXJkVGl0bGU+QSBjb21wcmVoZW5zaXZlIHdob2xlLWJyYWluIGF0bGFzIG9mIGNlbGwgdHlwZXMgaW4gdGhlIG1vdXNlPC9hd2FyZFRpdGxlPgogICAgPC9mdW5kaW5nUmVmZXJlbmNlPgogICAgPGZ1bmRpbmdSZWZlcmVuY2U+CiAgICAgIDxmdW5kZXJOYW1lPk5hdGlvbmFsIEluc3RpdHV0ZXMgb2YgSGVhbHRoPC9mdW5kZXJOYW1lPgogICAgICA8ZnVuZGVySWRlbnRpZmllciBmdW5kZXJJZGVudGlmaWVyVHlwZT0iUk9SIj5odHRwczovL3Jvci5vcmcvMDFjd3F6ZTg4PC9mdW5kZXJJZGVudGlmaWVyPgogICAgICA8YXdhcmROdW1iZXI+VTE5LU1ILTExNDgyMTwvYXdhcmROdW1iZXI+CiAgICAgIDxhd2FyZFRpdGxlPkEgY29tcHJlaGVuc2l2ZSBjZW50ZXIgZm9yIG1vdXNlIGJyYWluIGNlbGwgYXRsYXM8L2F3YXJkVGl0bGU+CiAgICA8L2Z1bmRpbmdSZWZlcmVuY2U+CiAgPC9mdW5kaW5nUmVmZXJlbmNlcz4KPC9yZXNvdXJjZT4K"
+    },
+    "id": "10.35077/g.8",
+    "relationships": {
+     "citations": {
+      "data": []
+     },
+     "client": {
+      "data": {
+       "id": "psc.bil",
+       "type": "clients"
+      }
+     },
+     "media": {
+      "data": {
+       "id": "10.35077/g.8",
+       "type": "media"
+      }
+     },
+     "partOf": {
+      "data": []
+     },
+     "parts": {
+      "data": []
+     },
+     "provider": {
+      "data": {
+       "id": "psc",
+       "type": "providers"
+      }
+     },
+     "references": {
+      "data": []
+     },
+     "versionOf": {
+      "data": []
+     },
+     "versions": {
+      "data": []
+     }
+    },
+    "type": "dois"
+   },
+   "jsonld": {
+    "@context": "http://schema.org",
+    "@id": "https://doi.org/10.35077/g.8",
+    "@type": "Dataset",
+    "additionalType": "Dataset",
+    "author": [
+     {
+      "@id": "https://orcid.org/0000-0002-6034-7853",
+      "@type": "Person",
+      "affiliation": {
+       "@type": "Organization",
+       "name": "Harvard University, Howard Hughes Medical Institute"
+      },
+      "familyName": "Zhuang",
+      "givenName": "Xiaowei",
+      "name": "Xiaowei Zhuang"
+     },
+     {
+      "@id": "https://orcid.org/0000-0002-9753-0635",
+      "@type": "Person",
+      "affiliation": {
+       "@type": "Organization",
+       "name": "Harvard University, Howard Hughes Medical Institute"
+      },
+      "familyName": "Zhang",
+      "givenName": "Meng",
+      "name": "Meng Zhang"
+     }
+    ],
+    "datePublished": "2020",
+    "description": "This data collection includes in situ, spatially resolved, gene expression profiling of individual cells in the mouse primary motor cortex by multuplexed error-robust fluorescence in situ hybridization (MERFISH). ~300,000 cells and 258 genes were imaged.",
+    "editor": [
+     {
+      "@id": "https://orcid.org/0000-0002-6034-7853",
+      "@type": "Person",
+      "affiliation": {
+       "@type": "Organization",
+       "name": "Harvard University, Howard Hughes Medical Institute"
+      },
+      "contributorType": "ProjectLeader",
+      "familyName": "Zhuang",
+      "givenName": "Xiaowei",
+      "name": "Xiaowei Zhuang"
+     },
+     {
+      "@id": "https://orcid.org/0000-0002-9753-0635",
+      "@type": "Person",
+      "affiliation": {
+       "@type": "Organization",
+       "name": "Harvard University, Howard Hughes Medical Institute"
+      },
+      "contributorType": "DataCollector",
+      "familyName": "Zhang",
+      "givenName": "Meng",
+      "name": "Meng Zhang"
+     },
+     {
+      "@id": "https://orcid.org/0000-0002-6410-4699",
+      "@type": "Person",
+      "affiliation": {
+       "@type": "Organization",
+       "name": "Harvard University, Howard Hughes Medical Institute"
+      },
+      "contributorType": "ProjectMember",
+      "familyName": "Eichhorn",
+      "givenName": "Stephen",
+      "name": "Stephen Eichhorn"
+     }
+    ],
+    "funder": [
+     {
+      "@id": "https://ror.org/01cwqze88",
+      "@type": "Organization",
+      "name": "National Institutes of Health"
+     },
+     {
+      "@id": "https://ror.org/01cwqze88",
+      "@type": "Organization",
+      "name": "National Institutes of Health"
+     }
+    ],
+    "name": "A molecularly defined and spatially resolved cell atlas of the mouse primary motor cortex",
+    "provider": {
+     "@type": "Organization",
+     "name": "datacite"
+    },
+    "publisher": {
+     "@type": "Organization",
+     "name": "Brain Image Library"
+    },
+    "schemaVersion": "http://datacite.org/schema/kernel-4",
+    "url": "https://doi.brainimagelibrary.org/doi/10.35077/g.8"
+   }
+  },
+  "dataid": "10.35077/g.8",
+  "namespace": "BILG",
+  "private": {},
+  "public": {
+   "relatedmap": [
+    {
+     "relatedIdentifier": "10.35077/g.21",
+     "relatedIdentifierType": "DOI",
+     "relatedMetadataScheme": null,
+     "relationType": "IsObsoletedBy",
+     "resourceTypeGeneral": null,
+     "schemeType": null,
+     "schemeUri": null
+    }
+   ]
+  },
+  "version": 1
+ },
+ "endpoint": "GroupDoi/bildid",
+ "message": "GET success",
+ "success": "true"
+}

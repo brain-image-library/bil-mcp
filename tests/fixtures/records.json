@@ -1,0 +1,1249 @@
+{
+ "ace-ban-win": {
+  "Assets": [
+   {
+    "bildid": "ace-ban-win",
+    "bildoi": "",
+    "brainpidata": [],
+    "brainpiroot": "",
+    "manifestfile": "/bil/pscstaff/icaoberg/bil-inventory/datasets/json/ace-ban-win.json"
+   }
+  ],
+  "Contributors": [
+   {
+    "affiliation": "Harvard University",
+    "affiliationidentifier": "https://ror.org/03vek6s52",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Zhuang, Xiaowei",
+    "contributortype": "ProjectLeader",
+    "creator": "Yes",
+    "nameidentifier": "https://orcid.org/0000-0002-6034-7853",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   }
+  ],
+  "Dataset": [
+   {
+    "abstract": "MERFISH data on mouse primary motor cortex (updated)",
+    "bildirectory": "/bil/data/cf/1c/cf1c1a431ef8d021",
+    "dataset_image": "",
+    "dataset_size": "13096.711765283",
+    "doi": "",
+    "generalmodality": "spatial transcriptomics",
+    "methods": "spatial transcriptomics / spatial transcriptomics / MERFISH",
+    "number_of_files": "11570",
+    "other": "",
+    "rights": "Creative Commons Attribution 4.0 International",
+    "rightsidentifier": "CC-BY-4.0",
+    "rightsuri": "https://creativecommons.org/licenses/by/4.0/",
+    "socialmedia": "",
+    "subject": "",
+    "subjectscheme": "",
+    "technicalinfo": "",
+    "technique": "MERFISH",
+    "title": "Mouse data from sample: zhuang_merfish_MOp, modality: spatial transcriptomics."
+   }
+  ],
+  "Funders": [
+   {
+    "award_number": "U19MH114830, U19MH114821",
+    "award_title": "A comprehensive whole-brain atlas of cell types in the mouse",
+    "fundername": "National Institutes of Health",
+    "funding_reference_identifier": "https://ror.org/01cwqze88",
+    "funding_reference_identifier_type": "ROR"
+   }
+  ],
+  "Image": [
+   {
+    "channels": "",
+    "dimensionorder": "",
+    "displaycolor": "NA",
+    "files": "11570",
+    "flurophore": "",
+    "gbytes": "13096.711765283",
+    "landmarkname": "",
+    "landmarkx": "",
+    "landmarky": "",
+    "landmarkz": "",
+    "number": "NA",
+    "obliquexdim1": "",
+    "obliquexdim2": "",
+    "obliquexdim3": "",
+    "obliqueydim1": "",
+    "obliqueydim2": "",
+    "obliqueydim3": "",
+    "obliquezdim1": "",
+    "obliquezdim2": "",
+    "obliquezdim3": "",
+    "representation": "",
+    "slices": "",
+    "stepsizet": "",
+    "stepsizex": "NA",
+    "stepsizey": "NA",
+    "stepsizez": "",
+    "xaxis": "NA",
+    "xsize": "",
+    "yaxis": "NA",
+    "ysize": "",
+    "z": "",
+    "zaxis": "NA",
+    "zsize": ""
+   }
+  ],
+  "Instrument": [],
+  "Publication": [],
+  "Specimen": [
+   {
+    "age": "NA",
+    "ageunit": "NA",
+    "atlas": "allen",
+    "genotype": "Strain_Name='C57BL6';",
+    "linkage": [],
+    "localid": "zhuang_merfish_MOp",
+    "locations": "primary motor cortex (Mop)",
+    "ncbitaxonomy": "NCBI:txid10090",
+    "organlocalid": "",
+    "organname": "Brain",
+    "samplelocalid": "zhuang_merfish_MOp",
+    "sex": "Unknown",
+    "species": "mouse"
+   }
+  ],
+  "Submission": {
+   "bildate": "2025-11-05",
+   "collection": "1033",
+   "consortium": "Brain Initiative Cell Census Network (BICCN)",
+   "doi": "",
+   "metadata": "2.0",
+   "method": "ingest_1",
+   "project": "U19 Huang",
+   "sheet": "1543",
+   "submission_uuid": "cf1c1a431ef8d021"
+  },
+  "Tags": []
+ },
+ "ace-boo-sag": {
+  "Assets": [
+   {
+    "bildid": "ace-boo-sag",
+    "bildoi": "",
+    "brainpidata": [],
+    "brainpiroot": "",
+    "manifestfile": "/bil/pscstaff/icaoberg/bil-inventory/datasets/json/ace-boo-sag.json"
+   }
+  ],
+  "Contributors": [
+   {
+    "affiliation": "Harvard University",
+    "affiliationidentifier": "https://ror.org/03vek6s52",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Blosser, Timothy",
+    "contributortype": "Researcher",
+    "creator": "Yes",
+    "nameidentifier": "https://orcid.org/0000-0002-7739-922X",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Harvard University",
+    "affiliationidentifier": "https://ror.org/03vek6s52",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Jung, Won",
+    "contributortype": "Researcher",
+    "creator": "Yes",
+    "nameidentifier": "https://orcid.org/0000-0003-2810-5528",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Harvard University",
+    "affiliationidentifier": "https://ror.org/03vek6s52",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Lian, Zhengzheng",
+    "contributortype": "Researcher",
+    "creator": "Yes",
+    "nameidentifier": "https://orcid.org/0000-0002-3969-4199",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Harvard University",
+    "affiliationidentifier": "https://ror.org/03vek6s52",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Dulac, Catherine",
+    "contributortype": "ProjectLeader",
+    "creator": "Yes",
+    "nameidentifier": "https://orcid.org/0000-0001-5024-5418",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Harvard University",
+    "affiliationidentifier": "https://ror.org/03vek6s52",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Dulac, Catherine",
+    "contributortype": "ContactPerson",
+    "creator": "Yes",
+    "nameidentifier": "https://orcid.org/0000-0001-5024-5418",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Harvard University",
+    "affiliationidentifier": "https://ror.org/03vek6s52",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Xiaowei Zhuang",
+    "contributortype": "ProjectLeader",
+    "creator": "Yes",
+    "nameidentifier": "https://orcid.org/0000-0002-6034-7853",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Harvard University",
+    "affiliationidentifier": "https://ror.org/03vek6s52",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Xiaowei Zhuang",
+    "contributortype": "ContactPerson",
+    "creator": "Yes",
+    "nameidentifier": "https://orcid.org/0000-0002-6034-7853",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   }
+  ],
+  "Dataset": [
+   {
+    "abstract": "In this project, we used MERFISH to perform in situ gene expresssion profiling of individual cells in the mouses hypothalamus, determine the cell-type identity of these cells and map the spatial organization of the cell types. We performed MERFISH imaging on 360 genes in a total of 200 coronal brain slices  and constructed a molecularly defined and spatially resolved cell atlas of mouse hypothalamus.",
+    "bildirectory": "/bil/data/c4/6b/c46ba5ff7e7b9aae/",
+    "dataset_image": "",
+    "dataset_size": "55539.379635713",
+    "doi": "",
+    "generalmodality": "spatial transcriptomics",
+    "methods": "",
+    "number_of_files": "1818209",
+    "other": "",
+    "rights": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "rightsidentifier": "CC-BY-4.0",
+    "rightsuri": "https://creativecommons.org/licenses/by/4.0/",
+    "socialmedia": "",
+    "subject": "",
+    "subjectscheme": "",
+    "technicalinfo": "",
+    "technique": "MERFISH",
+    "title": "A molecularly defined and spatially resolved cell atlas of the mouses hypothalamus"
+   }
+  ],
+  "Funders": [
+   {
+    "award_number": "1-U19-MH114821-01",
+    "award_title": "A Comprehensive Center for Mouse Brain Cell Atlas",
+    "fundername": "National Institutes of Health",
+    "funding_reference_identifier": "https://ror.org/01cwqze88",
+    "funding_reference_identifier_type": "ROR"
+   }
+  ],
+  "Image": [
+   {
+    "channels": "",
+    "dimensionorder": "",
+    "displaycolor": "single color, gray scale",
+    "files": "",
+    "flurophore": "",
+    "gbytes": "",
+    "landmarkname": "",
+    "landmarkx": "",
+    "landmarky": "",
+    "landmarkz": "",
+    "number": "1.0",
+    "obliquexdim1": "",
+    "obliquexdim2": "",
+    "obliquexdim3": "",
+    "obliqueydim1": "",
+    "obliqueydim2": "",
+    "obliqueydim3": "",
+    "obliquezdim1": "",
+    "obliquezdim2": "",
+    "obliquezdim3": "",
+    "representation": "",
+    "slices": "",
+    "stepsizet": "",
+    "stepsizex": "0.109",
+    "stepsizey": "0.109",
+    "stepsizez": "",
+    "xaxis": "left-to-right",
+    "xsize": "",
+    "yaxis": "left-to-right",
+    "ysize": "",
+    "z": "",
+    "zaxis": "left-to-right",
+    "zsize": ""
+   }
+  ],
+  "Instrument": [
+   {
+    "detectionwavelength": "",
+    "detectormodel": "",
+    "detectortype": "",
+    "illuminationtypes": "",
+    "illuminationwavelength": "",
+    "microscopemanufacturerandmodel": "Nikon TI2-U",
+    "microscopetype": "Inverted",
+    "objectiveimmersion": "",
+    "objectivemagnification": "",
+    "objectivena": "",
+    "objectivename": "",
+    "sampletemperature": ""
+   }
+  ],
+  "Publication": [],
+  "Specimen": [
+   {
+    "age": "8 to 11",
+    "ageunit": "weeks",
+    "atlas": "",
+    "genotype": "",
+    "linkage": [],
+    "localid": "",
+    "locations": "HYP - Hypothalamus",
+    "ncbitaxonomy": "NCBI:txid10090",
+    "organlocalid": "",
+    "organname": "Brain",
+    "samplelocalid": "N/A",
+    "sex": "Male",
+    "species": "mouse"
+   }
+  ],
+  "Submission": {
+   "bildate": "2022-03-24",
+   "collection": "1325",
+   "consortium": "Brain Initiative Cell Census Network (BICCN)",
+   "doi": "",
+   "metadata": "2.0",
+   "method": "ingest_1",
+   "project": "U19 Huang",
+   "sheet": "56",
+   "submission_uuid": "c46ba5ff7e7b9aae"
+  },
+  "Tags": []
+ },
+ "ace-can-ill": {
+  "Assets": [
+   {
+    "bildid": "ace-can-ill",
+    "bildoi": "",
+    "brainpidata": [],
+    "brainpiroot": "",
+    "manifestfile": "/bil/pscstaff/icaoberg/bil-inventory/datasets/json/ace-can-ill.json"
+   }
+  ],
+  "Contributors": [
+   {
+    "affiliation": "University of California, San Francisco",
+    "affiliationidentifier": "https://ror.org/043mz5j54",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Wang, Li",
+    "contributortype": "Researcher",
+    "creator": "Yes",
+    "nameidentifier": "https://orcid.org/0000-0001-9510-6294",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "University of California, San Francisco",
+    "affiliationidentifier": "https://ror.org/043mz5j54",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Kriegstein, Arnold",
+    "contributortype": "ProjectLeader",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0001-5742-2990",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   }
+  ],
+  "Dataset": [
+   {
+    "abstract": "This dataset is part of a set of MERFISH experiments to identify the cell types and their locations in the developing human prefrontal cortex. To generate a spatiotemporal atlas of individual cell types and major neuronal lineages in the developing human cerebral cortex, we performed spatial transcriptomic analysis using MERFISH in the prefrontal cortex. These data allow precise quantification of molecularly defined cell types as well as mapping their spatial distributions in a tissue context.",
+    "bildirectory": "/bil/data/67/b0/67b0f446e818fc95/ARKFrozen-82-PFC/",
+    "dataset_image": "",
+    "dataset_size": "195.810878883",
+    "doi": "",
+    "generalmodality": "spatial transcriptomics",
+    "methods": "https://vizgen.com/resources/user-guides/",
+    "number_of_files": "1634",
+    "other": "",
+    "rights": "Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)",
+    "rightsidentifier": "CC-BY-NC-SA-4.0",
+    "rightsuri": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "socialmedia": "MERFISH results of a GW20 human prefrontal cortex",
+    "subject": "",
+    "subjectscheme": "",
+    "technicalinfo": "",
+    "technique": "MERFISH",
+    "title": "VA00265 300-gene MERFISH results of a GW20 human prefrontal cortex"
+   }
+  ],
+  "Funders": [
+   {
+    "award_number": "5-U01-MH114825-05",
+    "award_title": "A Cellular Resolution Census of the Developing Human Brain",
+    "fundername": "National Institutes of Health",
+    "funding_reference_identifier": "https://ror.org/01cwqze88",
+    "funding_reference_identifier_type": "ROR"
+   }
+  ],
+  "Image": [
+   {
+    "channels": "",
+    "dimensionorder": "",
+    "displaycolor": "not applicable",
+    "files": "",
+    "flurophore": "",
+    "gbytes": "",
+    "landmarkname": "",
+    "landmarkx": "",
+    "landmarky": "",
+    "landmarkz": "",
+    "number": "not applicable",
+    "obliquexdim1": "",
+    "obliquexdim2": "",
+    "obliquexdim3": "",
+    "obliqueydim1": "",
+    "obliqueydim2": "",
+    "obliqueydim3": "",
+    "obliquezdim1": "",
+    "obliquezdim2": "",
+    "obliquezdim3": "",
+    "representation": "",
+    "slices": "",
+    "stepsizet": "",
+    "stepsizex": "9.25935554504394 pixels/micron",
+    "stepsizey": "9.25935554504394 pixels/micron",
+    "stepsizez": "1 micron",
+    "xaxis": "superior-to-inferior",
+    "xsize": "",
+    "yaxis": "left-to-right",
+    "ysize": "",
+    "z": "",
+    "zaxis": "left-to-right",
+    "zsize": ""
+   }
+  ],
+  "Instrument": [
+   {
+    "detectionwavelength": "",
+    "detectormodel": "",
+    "detectortype": "",
+    "illuminationtypes": "",
+    "illuminationwavelength": "",
+    "microscopemanufacturerandmodel": "Vizgen",
+    "microscopetype": "MERSCOPE",
+    "objectiveimmersion": "",
+    "objectivemagnification": "",
+    "objectivena": "",
+    "objectivename": "",
+    "sampletemperature": ""
+   }
+  ],
+  "Publication": [],
+  "Specimen": [
+   {
+    "age": "NA",
+    "ageunit": "Gestational weeks",
+    "atlas": "",
+    "genotype": "",
+    "linkage": [],
+    "localid": "ARKFrozen-82-PFC",
+    "locations": "PFC - Prefrontal cortex",
+    "ncbitaxonomy": "NCBI:txid9606",
+    "organlocalid": "ARKFrozen-82-PFC",
+    "organname": "Brain",
+    "samplelocalid": "ARKFrozen-82-PFC",
+    "sex": "Unknown",
+    "species": "human"
+   }
+  ],
+  "Submission": {
+   "bildate": "2022-09-23",
+   "collection": "1580",
+   "consortium": "Brain Initiative Cell Census Network (BICCN)",
+   "doi": "",
+   "metadata": "2.0",
+   "method": "ingest_1",
+   "project": "U01 Kriegstein Spatial Project",
+   "sheet": "268",
+   "submission_uuid": "67b0f446e818fc95"
+  },
+  "Tags": []
+ },
+ "ace-lot-web": {
+  "Assets": [
+   {
+    "bildid": "ace-lot-web",
+    "bildoi": "",
+    "brainpidata": [],
+    "brainpiroot": "",
+    "manifestfile": "/bil/pscstaff/icaoberg/bil-inventory/datasets/json/ace-lot-web.json"
+   }
+  ],
+  "Contributors": [
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Allen Institute",
+    "contributortype": "ResearchGroup",
+    "creator": "Yes",
+    "nameidentifier": "",
+    "nameidentifierscheme": "",
+    "nametype": "Organizational"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Kunst, Michael",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0003-4159-8056",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Mathieu, Remi",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-9887-6400",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Ching, Lindsey",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0009-0000-5573-021X",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Quon, Jacob",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0001-9542-7776",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "McMillen, Delissa",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-3413-4424",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Nagra, Josh",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0009-0005-3746-0240",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Olsen, Paul",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0001-8132-3722",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Campos, Jazmin",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-9384-9913",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Martin, Naomi",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-0034-1628",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Ariza, Jeanelle",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-0829-7887",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Ruiz, Augustin",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-8361-5152",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Valera Cuevas, Nasmil",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-9846-3796",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Waters, Jack",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-2312-4183",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Zeng, Hongkui",
+    "contributortype": "ProjectLeader",
+    "creator": "Yes",
+    "nameidentifier": "https://orcid.org/0000-0002-0326-5878",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   }
+  ],
+  "Dataset": [
+   {
+    "abstract": "Spatial transcriptomics atlas of the entire brain of a developing mouse (P28). We profiled 500 genes which were selected to maximize our ability to relate each cell to one of the 5200 cell types defined in our RNAseq-based taxonomy. We image 10 \u00b5m section which were acquired at an interval of 200 \u00b5m. Individual cell were identified using cell segmentation algorithms to a total of ~6 million cells.  The MERFISH datasets not only provide the possibility for accurate spatial annotation of major cell types at subclass level, but also reveal very fine resolution spatial distinctions or gradients for cell types within each subclass.",
+    "bildirectory": "/bil/data/50/51/505118bf1edfb3e6/702265/1296400371/merfish_output/1296400371_SISSeg_mousedevmodel_20241006",
+    "dataset_image": "",
+    "dataset_size": "1.866005223",
+    "doi": "",
+    "generalmodality": "spatial transcriptomics",
+    "methods": "",
+    "number_of_files": "7",
+    "other": "",
+    "rights": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "rightsidentifier": "CC-BY-4.0",
+    "rightsuri": "https://creativecommons.org/licenses/by/4.0/",
+    "socialmedia": "MERFISH imaging of 10 \u00b5m thick sections of P28 male C57BL/6J mouse brain that covers the entire brain. Individual sections are taken at 200 \u00b5m interval",
+    "subject": "MERFISH, spatial transcriptomics, atlas, development, mouse, MERSCOPE",
+    "subjectscheme": "",
+    "technicalinfo": "Dataset was resegmented using cellpose",
+    "technique": "MERFISH",
+    "title": "Developing mouse whole-brain transcriptomic cell type atlas - MERSCOPE v1: 1296400371"
+   }
+  ],
+  "Funders": [
+   {
+    "award_number": "5-U01-MH130962-02",
+    "award_title": "Comprehensive single-cell atlas of the developing mouse brain",
+    "fundername": "National Institutes of Health",
+    "funding_reference_identifier": "https://ror.org/01cwqze88",
+    "funding_reference_identifier_type": "ROR"
+   }
+  ],
+  "Image": [
+   {
+    "channels": "3.0",
+    "dimensionorder": "",
+    "displaycolor": "NA",
+    "files": "",
+    "flurophore": "DAPI, NA",
+    "gbytes": "",
+    "landmarkname": "",
+    "landmarkx": "",
+    "landmarky": "",
+    "landmarkz": "",
+    "number": "NA",
+    "obliquexdim1": "",
+    "obliquexdim2": "",
+    "obliquexdim3": "",
+    "obliqueydim1": "",
+    "obliqueydim2": "",
+    "obliqueydim3": "",
+    "obliquezdim1": "",
+    "obliquezdim2": "",
+    "obliquezdim3": "",
+    "representation": "",
+    "slices": "7.0",
+    "stepsizet": "",
+    "stepsizex": "0.108",
+    "stepsizey": "0.108",
+    "stepsizez": "1.5",
+    "xaxis": "left-to-right",
+    "xsize": "",
+    "yaxis": "left-to-right",
+    "ysize": "",
+    "z": "1.0",
+    "zaxis": "posterior-to-anterior",
+    "zsize": ""
+   }
+  ],
+  "Instrument": [
+   {
+    "detectionwavelength": "",
+    "detectormodel": "",
+    "detectortype": "",
+    "illuminationtypes": "",
+    "illuminationwavelength": "",
+    "microscopemanufacturerandmodel": "Vizgen MERSCOPE",
+    "microscopetype": "Epifluorescent",
+    "objectiveimmersion": "Oil",
+    "objectivemagnification": "63x",
+    "objectivena": "",
+    "objectivename": "",
+    "sampletemperature": ""
+   }
+  ],
+  "Publication": [],
+  "Specimen": [
+   {
+    "age": "28.0",
+    "ageunit": "Days",
+    "atlas": "AllenMouseV2",
+    "genotype": "Strain_Name='C57BL6'",
+    "linkage": [
+     {
+      "class": "xref",
+      "relationship": "section",
+      "type": "cubie_tissue",
+      "xid": "SC-HGGI452921"
+     },
+     {
+      "class": "xref",
+      "relationship": "tissue",
+      "type": "cubie_tissue",
+      "xid": "TI-AZZI381627"
+     },
+     {
+      "class": "xref",
+      "relationship": "donor",
+      "type": "cubie_tissue",
+      "xid": "DO-OHTO1697"
+     }
+    ],
+    "localid": "702265.0",
+    "locations": "",
+    "ncbitaxonomy": "NCBI:txid10090",
+    "organlocalid": "1296400371.0",
+    "organname": "Brain",
+    "samplelocalid": "1296400371",
+    "sex": "Male",
+    "species": "Mouse"
+   }
+  ],
+  "Submission": {
+   "bildate": "2025-01-24",
+   "collection": "1980",
+   "consortium": "Brain Initiative Cell Atlas Network (BICAN)",
+   "doi": "",
+   "metadata": "2.0",
+   "method": "ingest_1",
+   "project": "Comprehensive single-cell atlas of the developing mouse brain",
+   "sheet": "1088",
+   "submission_uuid": "505118bf1edfb3e6"
+  },
+  "Tags": []
+ },
+ "ace-lot-wet": {
+  "Assets": [
+   {
+    "bildid": "ace-lot-wet",
+    "bildoi": "",
+    "brainpidata": [],
+    "brainpiroot": "",
+    "manifestfile": "/bil/pscstaff/icaoberg/bil-inventory/datasets/json/ace-lot-wet.json"
+   }
+  ],
+  "Contributors": [
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Allen Institute",
+    "contributortype": "ResearchGroup",
+    "creator": "Yes",
+    "nameidentifier": "",
+    "nameidentifierscheme": "",
+    "nametype": "Organizational"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Kunst, Michael",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0003-4159-8056",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Mathieu, Remi",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-9887-6400",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Ching, Lindsey",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0009-0000-5573-021X",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Quon, Jacob",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0001-9542-7776",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "McMillen, Delissa",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-3413-4424",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Nagra, Josh",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0009-0005-3746-0240",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Olsen, Paul",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0001-8132-3722",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Campos, Jazmin",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-9384-9913",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Martin, Naomi",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-0034-1628",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Ariza, Jeanelle",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-0829-7887",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Ruiz, Augustin",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-8361-5152",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Valera Cuevas, Nasmil",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-9846-3796",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Waters, Jack",
+    "contributortype": "Researcher",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-2312-4183",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Zeng, Hongkui",
+    "contributortype": "ProjectLeader",
+    "creator": "Yes",
+    "nameidentifier": "https://orcid.org/0000-0002-0326-5878",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   }
+  ],
+  "Dataset": [
+   {
+    "abstract": "Spatial transcriptomics atlas of the entire brain of a developing mouse (P28). We profiled 500 genes which were selected to maximize our ability to relate each cell to one of the 5200 cell types defined in our RNAseq-based taxonomy. We image 10 \u00b5m section which were acquired at an interval of 200 \u00b5m. Individual cell were identified using cell segmentation algorithms to a total of ~6 million cells.  The MERFISH datasets not only provide the possibility for accurate spatial annotation of major cell types at subclass level, but also reveal very fine resolution spatial distinctions or gradients for cell types within each subclass.",
+    "bildirectory": "/bil/data/50/51/505118bf1edfb3e6/702265/1296400368/merfish_output/1296400368_SISSeg_mousedevmodel_20241006",
+    "dataset_image": "",
+    "dataset_size": "2.100614089",
+    "doi": "",
+    "generalmodality": "spatial transcriptomics",
+    "methods": "",
+    "number_of_files": "7",
+    "other": "",
+    "rights": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "rightsidentifier": "CC-BY-4.0",
+    "rightsuri": "https://creativecommons.org/licenses/by/4.0/",
+    "socialmedia": "MERFISH imaging of 10 \u00b5m thick sections of P28 male C57BL/6J mouse brain that covers the entire brain. Individual sections are taken at 200 \u00b5m interval",
+    "subject": "MERFISH, spatial transcriptomics, atlas, development, mouse, MERSCOPE",
+    "subjectscheme": "",
+    "technicalinfo": "Dataset was resegmented using cellpose",
+    "technique": "MERFISH",
+    "title": "Developing mouse whole-brain transcriptomic cell type atlas - MERSCOPE v1: 1296400368"
+   }
+  ],
+  "Funders": [
+   {
+    "award_number": "5-U01-MH130962-02",
+    "award_title": "Comprehensive single-cell atlas of the developing mouse brain",
+    "fundername": "National Institutes of Health",
+    "funding_reference_identifier": "https://ror.org/01cwqze88",
+    "funding_reference_identifier_type": "ROR"
+   }
+  ],
+  "Image": [
+   {
+    "channels": "3.0",
+    "dimensionorder": "",
+    "displaycolor": "NA",
+    "files": "",
+    "flurophore": "DAPI, NA",
+    "gbytes": "",
+    "landmarkname": "",
+    "landmarkx": "",
+    "landmarky": "",
+    "landmarkz": "",
+    "number": "NA",
+    "obliquexdim1": "",
+    "obliquexdim2": "",
+    "obliquexdim3": "",
+    "obliqueydim1": "",
+    "obliqueydim2": "",
+    "obliqueydim3": "",
+    "obliquezdim1": "",
+    "obliquezdim2": "",
+    "obliquezdim3": "",
+    "representation": "",
+    "slices": "7.0",
+    "stepsizet": "",
+    "stepsizex": "0.108",
+    "stepsizey": "0.108",
+    "stepsizez": "1.5",
+    "xaxis": "left-to-right",
+    "xsize": "",
+    "yaxis": "left-to-right",
+    "ysize": "",
+    "z": "1.0",
+    "zaxis": "posterior-to-anterior",
+    "zsize": ""
+   }
+  ],
+  "Instrument": [
+   {
+    "detectionwavelength": "",
+    "detectormodel": "",
+    "detectortype": "",
+    "illuminationtypes": "",
+    "illuminationwavelength": "",
+    "microscopemanufacturerandmodel": "Vizgen MERSCOPE",
+    "microscopetype": "Epifluorescent",
+    "objectiveimmersion": "Oil",
+    "objectivemagnification": "63x",
+    "objectivena": "",
+    "objectivename": "",
+    "sampletemperature": ""
+   }
+  ],
+  "Publication": [],
+  "Specimen": [
+   {
+    "age": "28.0",
+    "ageunit": "Days",
+    "atlas": "AllenMouseV2",
+    "genotype": "Strain_Name='C57BL6'",
+    "linkage": [
+     {
+      "class": "xref",
+      "relationship": "section",
+      "type": "cubie_tissue",
+      "xid": "SC-ORTN694160"
+     },
+     {
+      "class": "xref",
+      "relationship": "tissue",
+      "type": "cubie_tissue",
+      "xid": "TI-AZZI381627"
+     },
+     {
+      "class": "xref",
+      "relationship": "donor",
+      "type": "cubie_tissue",
+      "xid": "DO-OHTO1697"
+     }
+    ],
+    "localid": "702265.0",
+    "locations": "",
+    "ncbitaxonomy": "NCBI:txid10090",
+    "organlocalid": "1296400368.0",
+    "organname": "Brain",
+    "samplelocalid": "1296400368",
+    "sex": "Male",
+    "species": "Mouse"
+   }
+  ],
+  "Submission": {
+   "bildate": "2025-01-24",
+   "collection": "1980",
+   "consortium": "Brain Initiative Cell Atlas Network (BICAN)",
+   "doi": "",
+   "metadata": "2.0",
+   "method": "ingest_1",
+   "project": "Comprehensive single-cell atlas of the developing mouse brain",
+   "sheet": "1088",
+   "submission_uuid": "505118bf1edfb3e6"
+  },
+  "Tags": []
+ },
+ "rut": {
+  "Assets": [
+   {
+    "bildid": "rut",
+    "bildoi": "https://doi.org/10.35077/rut",
+    "brainpidata": [],
+    "brainpiroot": "",
+    "manifestfile": "/bil/pscstaff/icaoberg/bil-inventory/datasets/json/rut.json"
+   }
+  ],
+  "Contributors": [
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Allen Institute",
+    "contributortype": "ResearchGroup",
+    "creator": "Yes",
+    "nameidentifier": "",
+    "nameidentifierscheme": "",
+    "nametype": "Organizational"
+   },
+   {
+    "affiliation": "Allen Institute for Brain Science",
+    "affiliationidentifier": "https://ror.org/00dcv1019",
+    "affiliationidentifierscheme": "ROR",
+    "contributorname": "Bosiljka Tasic",
+    "contributortype": "ProjectLeader",
+    "creator": "No",
+    "nameidentifier": "https://orcid.org/0000-0002-6861-4506",
+    "nameidentifierscheme": "ORCID",
+    "nametype": "Personal"
+   }
+  ],
+  "Dataset": [
+   {
+    "abstract": "This is a series of serial two-photon images of whole mouse brain to characterize cell populations for the purpose of evaluating the specificity of newly created enhancer elements",
+    "bildirectory": "/bil/data/96/ba/96ba8210cceceeb7/0539072223",
+    "dataset_image": "https://alleninstitute.org/media/filer_public_thumbnails/filer_public/2e/6e/2e6e35a2-a82e-4e1c-af3d-4e95e43d3baf/logo_bs_header.png__220x220_q75_subsampling-2.jpg",
+    "dataset_size": "65.299442616",
+    "doi": "https://doi.org/10.35077/rut",
+    "generalmodality": "population imaging",
+    "methods": "",
+    "number_of_files": "140",
+    "other": "",
+    "rights": "Allen Institute Terms of Use, Creative Commons Attribution 4.0 International",
+    "rightsidentifier": "CC-BY-4.0",
+    "rightsuri": "https://alleninstitute.org/legal/terms-use/ , https://creativecommons.org/licenses/by/4.0/",
+    "socialmedia": "",
+    "subject": "",
+    "subjectscheme": "",
+    "technicalinfo": "",
+    "technique": "enhancer virus labeling",
+    "title": "588181"
+   }
+  ],
+  "Funders": [
+   {
+    "award_number": "1-RF-1MH121274-01",
+    "award_title": "Cell class- or type-specific viruses for brain-wide labeling and neural circuit examination",
+    "fundername": "National Institutes of Health",
+    "funding_reference_identifier": "https://ror.org/01cwqze88",
+    "funding_reference_identifier_type": "ROR"
+   }
+  ],
+  "Image": [
+   {
+    "channels": "3.0",
+    "dimensionorder": "",
+    "displaycolor": "(1.0,0.0,0.0),(0.0,1.0,0.0),(0.0,0.0,1.0)",
+    "files": "",
+    "flurophore": "CH1(background fluorescence)  CH2(GFP) CH3(background fluorescence)",
+    "gbytes": "",
+    "landmarkname": "",
+    "landmarkx": "",
+    "landmarky": "",
+    "landmarkz": "",
+    "number": "1,2,3,red,green,blue",
+    "obliquexdim1": "",
+    "obliquexdim2": "",
+    "obliquexdim3": "",
+    "obliqueydim1": "",
+    "obliqueydim2": "",
+    "obliqueydim3": "",
+    "obliquezdim1": "",
+    "obliquezdim2": "",
+    "obliquezdim3": "",
+    "representation": "neurite",
+    "slices": "140.0",
+    "stepsizet": "",
+    "stepsizex": "0.35",
+    "stepsizey": "0.35",
+    "stepsizez": "100.0",
+    "xaxis": "left-to-right",
+    "xsize": "40000.0",
+    "yaxis": "superior-to-inferior",
+    "ysize": "30000.0",
+    "z": "1.0",
+    "zaxis": "posterior-to-anterior",
+    "zsize": "1.0"
+   }
+  ],
+  "Instrument": [
+   {
+    "detectionwavelength": "447-593nm",
+    "detectormodel": "Hamamatsu R3896",
+    "detectortype": "PMT",
+    "illuminationtypes": "",
+    "illuminationwavelength": "925nm",
+    "microscopemanufacturerandmodel": "TissueVision TissueCyte 1000",
+    "microscopetype": "Two Photon",
+    "objectiveimmersion": "Water",
+    "objectivemagnification": "20X",
+    "objectivena": "1.0",
+    "objectivename": "Zeiss 20X Plan-Apochromat",
+    "sampletemperature": "20.0"
+   }
+  ],
+  "Publication": [],
+  "Specimen": [
+   {
+    "age": "58.0",
+    "ageunit": "Days",
+    "atlas": "",
+    "genotype": "wt/wt",
+    "linkage": [],
+    "localid": "588181",
+    "locations": "",
+    "ncbitaxonomy": "NCBI:txid10090",
+    "organlocalid": "1119684572.0",
+    "organname": "Brain",
+    "samplelocalid": "0539072223",
+    "sex": "Female",
+    "species": "mouse"
+   }
+  ],
+  "Submission": {
+   "bildate": "2022-03-24",
+   "collection": "1394",
+   "consortium": "Brain Initiative Cell Census Network (BICCN)",
+   "doi": "https://doi.org/10.35077/rut",
+   "metadata": "2.0",
+   "method": "ingest_1",
+   "project": "RF1 Tasic",
+   "sheet": "57",
+   "submission_uuid": "96ba8210cceceeb7"
+  },
+  "Tags": []
+ }
+}
