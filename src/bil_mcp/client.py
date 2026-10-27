@@ -220,9 +220,13 @@ class BILClient:
 
     # ----------------------------------------------------------------- files
     async def get_text(self, url: str) -> tuple[int, str]:
-        """GET an absolute URL (used for the download server's directory pages)."""
+        """GET an absolute URL (used for the download server's directory pages).
+
+        Uses the shorter download timeout: a directory page is small, so if no
+        answer comes within ~15 s the server is down, not slow.
+        """
         async with self._sem:
-            r = await self._http.get(url)
+            r = await self._http.get(url, timeout=self.s.download_timeout_s)
         return r.status_code, r.text
 
 

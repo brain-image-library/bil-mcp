@@ -115,7 +115,8 @@ All optional, set through the `env` block of your client config:
 |---|---|---|
 | `BIL_API_BASE` | `https://api.brainimagelibrary.org` | |
 | `BIL_DOWNLOAD_BASE` | `https://download.brainimagelibrary.org` | |
-| `BIL_TIMEOUT` | `60` | seconds per HTTP call |
+| `BIL_TIMEOUT` | `60` | seconds per HTTP call to the metadata API |
+| `BIL_DOWNLOAD_TIMEOUT` | `15` | seconds per directory page on the download server (fail fast when it's down) |
 | `BIL_CACHE_TTL` | `3600` | seconds; metadata changes rarely |
 | `BIL_RETRIEVE_BATCH` | `200` | ids per POST /retrieve |
 | `BIL_MAX_CONCURRENCY` | `4` | parallel HTTP calls (be polite to BIL) |

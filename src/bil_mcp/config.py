@@ -31,6 +31,8 @@ class Settings:
     download_base: str = "https://download.brainimagelibrary.org"
     viewer_base: str = "https://api.brainimagelibrary.org/web/view"
     timeout_s: float = 60.0
+    download_timeout_s: float = 15.0   # directory pages are small; fail fast if the server is down
+    status_url: str = "https://www.brainimagelibrary.org/datacentermove.html"
     cache_ttl_s: float = 3600.0
     cache_max_entries: int = 50_000
     retrieve_batch_size: int = 200
@@ -45,6 +47,8 @@ class Settings:
             download_base=os.environ.get("BIL_DOWNLOAD_BASE", d.download_base).rstrip("/"),
             viewer_base=os.environ.get("BIL_VIEWER_BASE", d.viewer_base),
             timeout_s=_float("BIL_TIMEOUT", d.timeout_s),
+            download_timeout_s=_float("BIL_DOWNLOAD_TIMEOUT", d.download_timeout_s),
+            status_url=os.environ.get("BIL_STATUS_URL", d.status_url),
             cache_ttl_s=_float("BIL_CACHE_TTL", d.cache_ttl_s),
             cache_max_entries=_int("BIL_CACHE_MAX_ENTRIES", d.cache_max_entries),
             retrieve_batch_size=_int("BIL_RETRIEVE_BATCH", d.retrieve_batch_size),

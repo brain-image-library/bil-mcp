@@ -83,8 +83,11 @@ async def list_files(client: BILClient, bildid: str, subpath: str = "", max_entr
     try:
         status, html = await client.get_text(url)
     except Exception as e:  # network: most likely the download server is unreachable
-        raise ValueError(f"Could not reach {url} ({type(e).__name__}). The dataset may be "
-                         f"accessible via Globus or on Bridges-2 at {ds.get('bildirectory')}.") from e
+        raise ValueError(
+            f"Could not reach {url} ({type(e).__name__}, waited up to {client.s.download_timeout_s:.0f} s). "
+            f"The BIL download server may be down for maintenance; check {client.s.status_url}. "
+            f"Metadata tools still work. The dataset may also be accessible via Globus or on "
+            f"Bridges-2 at {ds.get('bildirectory')}.") from e
     if status != 200:
         raise ValueError(f"Download server returned HTTP {status} for {url} (restricted or embargoed data?).")
     entries = parse_index(html, url)
