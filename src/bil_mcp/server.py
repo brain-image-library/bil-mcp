@@ -38,6 +38,7 @@ from .fields import FIELDS, UnknownFieldError
 from .files import list_files
 from .models import AccessInfo, FacetResult, FileListing, RelatedResult, SearchResult, https_url_for, summarize
 from .search import SearchError, facet_counts, related_datasets, search
+from .audit import LogToolCalls
 from .strict import RejectUnknownArguments
 
 log = logging.getLogger("bil_mcp")
@@ -94,6 +95,7 @@ mcp = MCPServer(
 )
 
 # Unknown argument names become tool errors instead of being silently dropped.
+mcp.middleware.append(LogToolCalls())             # outermost: sees every call, even rejected ones
 mcp.middleware.append(RejectUnknownArguments(mcp))
 
 READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=True, idempotent_hint=True, destructive_hint=False)
@@ -389,7 +391,10 @@ def main(argv: list[str] | None = None) -> None:
     # (at import), which would otherwise make basicConfig a silent no-op.
     logging.basicConfig(level=args.log_level.upper(), stream=sys.stderr, force=True,
                         format="%(asctime)s %(name)s %(levelname)s %(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)  # one line per HTTP call is noise
+    # httpx/httpcore log every connection step at DEBUG; our own client already logs
+    # each BIL request, so keep the libraries quiet.
+    for noisy in ("httpx", "httpcore"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     if args.transport == "stdio":
         mcp.run()
     else:

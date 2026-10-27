@@ -108,3 +108,15 @@ async def test_unknown_argument_is_rejected_with_suggestion(connect):
         assert "Unknown argument(s) for search_datasets: 'limt' (did you mean 'limit'?)" in r.content[0].text
         tools = {t.name: t for t in (await mcp_client.list_tools()).tools}
         assert all(t.input_schema.get("additionalProperties") is False for t in tools.values())
+
+
+async def test_tool_calls_are_logged_with_arguments(connect, caplog):
+    import logging
+    caplog.set_level(logging.INFO, logger="bil_mcp.audit")
+    async with connect() as mcp_client:
+        await mcp_client.call_tool("search_datasets", {"text": "xenium", "limit": 3})
+        await mcp_client.call_tool("search_datasets", {"filters": {"species": "Human"}, "limt": 5})
+    lines = [r.getMessage() for r in caplog.records if r.name == "bil_mcp.audit"]
+    assert any('search_datasets {"text": "xenium", "limit": 3}' in l for l in lines)
+    assert any(l.startswith("tool done") and " ok in " in l for l in lines)
+    assert any(l.startswith("tool done") and " ERROR in " in l for l in lines)  # unknown argument
