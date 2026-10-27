@@ -35,22 +35,28 @@ to it over stdin/stdout.
 
 ### Claude Desktop
 
-Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) and add:
+A script edits Claude Desktop's config for you (macOS). It changes only the `bil` entry, keeps
+your other servers, and backs the file up first:
 
-```json
-{
-  "mcpServers": {
-    "bil": {
-      "command": "/usr/local/bin/uv",
-      "args": ["--directory", "/ABSOLUTE/PATH/TO/bil_mcp", "run", "bil-mcp"]
-    }
-  }
-}
+```bash
+uv run python scripts/configure_claude_desktop.py            # dry run: shows the change
+uv run python scripts/configure_claude_desktop.py --write    # apply
 ```
 
-Use the output of `which uv` for `command`, because Desktop apps don't inherit your shell's `PATH`.
-Restart Claude Desktop. "bil" should then appear under the connectors/tools menu.
-A copy is in [`examples/claude_desktop_config.json`](examples/claude_desktop_config.json).
+Then quit Claude Desktop completely (Cmd+Q) and reopen it. In a chat, "+" → Connectors shows a
+**bil** switch (the tools) and **Add from bil** (prompts and the field-catalog resource).
+
+Logs: `~/Library/Logs/Claude/mcp-server-bil.log` holds Claude Desktop's record of the JSON-RPC
+messages plus the server's own stderr. To log every request sent to BIL:
+
+```bash
+uv run python scripts/configure_claude_desktop.py --log-level DEBUG --write
+grep "bil_mcp" ~/Library/Logs/Claude/mcp-server-bil.log | tail -n 20
+```
+
+`--log-level default --write` switches back to warnings only, and `--remove --write` uninstalls.
+To edit by hand instead, see [`examples/claude_desktop_config.json`](examples/claude_desktop_config.json);
+use the absolute path from `which uv`, because desktop apps don't inherit your shell's PATH.
 
 ### Claude Code
 

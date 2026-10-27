@@ -21,3 +21,8 @@ Things noticed while building and teaching, deliberately left for later.
   "marmoset"/"common marmoset". The future IR layer likely needs a synonym map; also worth
   reporting to BIL curation.
 - **Concurrency cap (4) vs BIL capacity.** Ask BIL operators for worker count / rate limits.
+
+## Distribution
+- **Package as a Claude Desktop extension (`.mcpb`)** so BIL users can install with one click
+  instead of uv + git + config editing (`manifest.json` + `mcpb pack`). Docker MCP Toolkit is the
+  alternative for users who run many servers across several MCP clients.
