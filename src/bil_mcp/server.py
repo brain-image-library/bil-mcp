@@ -7,13 +7,17 @@ This file is deliberately thin. Each tool validates input, calls into
 Run it with ``bil-mcp`` (stdio transport, which is what local MCP clients
 like Claude Desktop and Claude Code use).
 
-IMPORTANT for stdio servers: stdout carries the JSON-RPC protocol stream.
-Never ``print()`` here; logs go to stderr via ``logging``.
+IMPORTANT for stdio servers: stdout carries the JSON-RPC protocol stream, so
+never ``print()`` here; logs go to stderr via ``logging``. (mcp 2.x diverts
+stdout to stderr while the server is running, so a stray print() inside a tool
+is now harmless, but output written before the server starts still corrupts
+the stream, and other SDKs offer no such protection.)
 """
 
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 import logging
 import sys
@@ -76,6 +80,8 @@ How to work well with these tools:
 - get_dataset returns full metadata; prefer summaries unless details are needed.
 - BICAN datasets carry donor/tissue/section ids in Specimen.linkage; find_related_datasets
   follows them.
+- If a search returns 0 hits, tell the user which filter emptied it (see the result's notes) and
+  suggest real values from facet_counts; don't silently retry with guessed values.
 - Always give users the bildid and viewer_url so they can check results themselves.
 """
 
@@ -91,6 +97,18 @@ mcp = MCPServer(
 mcp.middleware.append(RejectUnknownArguments(mcp))
 
 READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=True, idempotent_hint=True, destructive_hint=False)
+
+
+def bil_tool(name: str | None = None):
+    """Register a read-only tool, with its docstring cleaned of indentation.
+
+    The SDK copies a function's raw __doc__ into the tool description, including
+    the leading spaces of every docstring line. inspect.cleandoc strips them, so
+    the model reads (and the context pays for) only the text.
+    """
+    def decorator(fn):
+        return mcp.tool(name=name, description=inspect.cleandoc(fn.__doc__ or ""), annotations=READ_ONLY)(fn)
+    return decorator
 
 
 def _client(ctx: Context) -> BILClient:
@@ -118,7 +136,7 @@ FilterDict = Annotated[
 ]
 
 
-@mcp.tool(annotations=READ_ONLY)
+@bil_tool()
 async def search_datasets(
     ctx: Context,
     filters: FilterDict = None,
@@ -142,7 +160,7 @@ async def search_datasets(
         raise _tool_error(e) from e
 
 
-@mcp.tool(annotations=READ_ONLY)
+@bil_tool()
 async def get_dataset(
     ctx: Context,
     bildid: Annotated[str | None, Field(description="BIL dataset id, e.g. 'ace-ban-win'")] = None,
@@ -173,7 +191,7 @@ async def get_dataset(
     return rec
 
 
-@mcp.tool(annotations=READ_ONLY)
+@bil_tool()
 async def get_dataset_summaries(
     ctx: Context,
     bildids: Annotated[list[str], Field(min_length=1, max_length=200, description="Up to 200 bildids")],
@@ -190,7 +208,7 @@ async def get_dataset_summaries(
 
 
 # Python name differs from the tool name to avoid clashing with search.facet_counts.
-@mcp.tool(name="facet_counts", annotations=READ_ONLY)
+@bil_tool(name="facet_counts")
 async def facet_counts_tool(
     ctx: Context,
     field: Annotated[str, Field(description="Field to count, e.g. 'species', 'technique', 'consortium'")],
@@ -214,7 +232,7 @@ async def facet_counts_tool(
         raise _tool_error(e) from e
 
 
-@mcp.tool(annotations=READ_ONLY)
+@bil_tool()
 async def find_related_datasets(
     ctx: Context,
     bildid: Annotated[str, Field(description="A BIL dataset id")],
@@ -234,7 +252,7 @@ async def find_related_datasets(
         raise _tool_error(e) from e
 
 
-@mcp.tool(annotations=READ_ONLY)
+@bil_tool()
 async def get_access_info(
     ctx: Context,
     bildid: Annotated[str, Field(description="A BIL dataset id")],
@@ -265,7 +283,7 @@ async def get_access_info(
     )
 
 
-@mcp.tool(annotations=READ_ONLY)
+@bil_tool()
 async def list_dataset_files(
     ctx: Context,
     bildid: Annotated[str, Field(description="A BIL dataset id")],
@@ -279,7 +297,7 @@ async def list_dataset_files(
         raise _tool_error(e) from e
 
 
-@mcp.tool(annotations=READ_ONLY)
+@bil_tool()
 async def get_group_doi(
     ctx: Context,
     group_id: Annotated[str, Field(description="Group/collection DOI id, e.g. 'g.8' or '10.35077/g.8'")],
@@ -303,7 +321,7 @@ async def get_group_doi(
     }
 
 
-@mcp.tool(annotations=READ_ONLY)
+@bil_tool()
 def list_fields() -> list[dict[str, Any]]:
     """All filter keys usable in search_datasets / facet_counts, with descriptions and example values."""
     return _field_catalog()
@@ -365,7 +383,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--version", action="version", version=f"bil-mcp {__version__}")
     args = parser.parse_args(argv)
 
-    logging.basicConfig(level=args.log_level.upper(), stream=sys.stderr,
+    # force=True: the SDK installs its own logging handler when MCPServer is created
+    # (at import), which would otherwise make basicConfig a silent no-op.
+    logging.basicConfig(level=args.log_level.upper(), stream=sys.stderr, force=True,
                         format="%(asctime)s %(name)s %(levelname)s %(message)s")
     logging.getLogger("httpx").setLevel(logging.WARNING)  # one line per HTTP call is noise
     if args.transport == "stdio":

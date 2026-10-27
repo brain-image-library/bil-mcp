@@ -108,6 +108,7 @@ class BILClient:
         for attempt in range(self.s.max_retries + 1):
             try:
                 async with self._sem:
+                    log.debug("BIL request %s %s", method, path)
                     r = await self._http.request(method, path, **kw)
                 if r.status_code >= 500:
                     raise BILAPIError(f"BIL API returned HTTP {r.status_code} for {path}")

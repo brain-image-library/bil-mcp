@@ -141,4 +141,7 @@ Architecture and design decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 * **Server doesn't show up in Claude Desktop**: use an absolute path to `uv`, then check
   `~/Library/Logs/Claude/mcp-server-bil.log`.
 * **"Could not reach the BIL API"**: check your network or VPN; try `curl https://api.brainimagelibrary.org/`.
-* **Anything printed to stdout breaks the protocol.** Log to stderr (`--log-level DEBUG`).
+* **stdout is the protocol channel.** Output written to stdout before the server starts (e.g. a
+  `print()` at import time) corrupts it. mcp 2.x diverts stdout to stderr while serving, so a
+  stray `print()` inside a tool is harmless here, but log to stderr anyway (`--log-level DEBUG`
+  shows every request to BIL).
