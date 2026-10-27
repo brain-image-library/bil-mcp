@@ -17,6 +17,7 @@ representation) translator plugs in: it would produce the same
 from __future__ import annotations
 
 import asyncio
+import difflib
 from collections import Counter
 from typing import Literal, Union
 from urllib.parse import urlencode
@@ -149,6 +150,8 @@ async def search(
     if text and text_mode == "all" and len(text.split()) > 1:
         notes.append("Multi-word text was treated as AND (one fulltext query per word).")
 
+    notes += _zero_hit_hints(stats)
+
     rest = ids[offset + limit : offset + limit + MAX_IDS_RETURNED]
     return SearchResult(
         total=len(ids),
@@ -161,6 +164,31 @@ async def search(
         bildids=rest,
         notes=notes,
     )
+
+
+def _zero_hit_hints(stats: list[FilterStat]) -> list[str]:
+    """Say WHICH filter emptied the search, and suggest close known values.
+
+    An empty result is a valid answer, so it is not an error. But "0 hits" alone
+    doesn't tell the model whether BIL lacks the data or the value was mistyped
+    ('humanh'). Naming the filter and suggesting close values helps it retry.
+    """
+    hints = []
+    for st in stats:
+        if st.matches:
+            continue
+        key, _, value = st.filter.partition("=")
+        f = BY_KEY.get(key)
+        msg = f"Filter {st.filter!r} matched 0 datasets on its own."
+        if f and f.examples:
+            by_lower = {e.lower(): e for e in f.examples}
+            close = difflib.get_close_matches(value.lower(), list(by_lower), n=3, cutoff=0.6)
+            if close:
+                msg += f" Did you mean: {', '.join(by_lower[c] for c in close)}?"
+            else:
+                msg += f" Known values include: {', '.join(f.examples)}."
+        hints.append(msg + " Use facet_counts on a broader search to see real values.")
+    return hints
 
 
 async def facet_counts(

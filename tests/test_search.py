@@ -82,3 +82,9 @@ async def test_related_by_donor(client):
 async def test_related_without_linkage(client):
     r = await related_datasets(client, "rut")
     assert r.related == [] and r.notes
+
+
+async def test_zero_hit_filter_gets_a_hint(client):
+    r = await search(client, {"species": "humanh", "technique": "MERFISH"})
+    assert r.total == 0
+    assert any("'species=humanh' matched 0" in n and "Did you mean: Human" in n for n in r.notes)

@@ -48,10 +48,14 @@ print("\n    tool names:", [t["name"] for t in tools])
 # 4. Call one tool, the way a model would after choosing it.
 send({"jsonrpc": "2.0", "id": 3, "method": "tools/call",
       "params": {"name": "search_datasets",
-                 "arguments": {"filters": {"species": "Human", "technique": "MERFISH"}, "limit": 1}}})
+                 "arguments": {"filters": {"species": "Humanh", "technique": "MERFISH"}, "limit": 1}}})
 result = receive()["result"]
 print("\n    structuredContent.total =", result["structuredContent"]["total"])
-print("    first dataset title    =", result["structuredContent"]["datasets"][0]["title"])
+sc = result["structuredContent"]
+if sc["datasets"]:
+    print("    first dataset title    =", sc["datasets"][0]["title"])
+print("    notes                  =", sc["notes"])
+print("    isError                =", result.get("isError"))
 
 server.stdin.close()
 server.wait()
