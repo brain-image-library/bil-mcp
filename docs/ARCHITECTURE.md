@@ -10,6 +10,7 @@
  │                                             ││
  │  bil-mcp process  ◄─────────────────────────┘│
  │   server.py   MCP layer: tools/resources/prompts
+ │   strict.py   middleware: reject unknown tool arguments
  │   search.py   multi-filter logic, facets, linkage
  │   files.py    download-server directory pages
  │   client.py   HTTP + retry + cache (no MCP)  │
@@ -37,6 +38,7 @@ and tested without a server.
 | D6 | Pydantic return types | SDK publishes an output schema and returns structured content; forces compact responses | Raw dicts (still used where the shape is BIL's own, e.g. `get_dataset`) |
 | D7 | Errors become `ToolError` | The model gets a readable message (`is_error: true`) it can recover from, and the session stays up | Letting exceptions escape |
 | D8 | Lifespan-managed shared client | One connection pool and one cache per process, closed cleanly on shutdown | A client per call: no caching, slower |
+| D10 | Unknown tool arguments are rejected (middleware in `strict.py`); schemas carry `additionalProperties: false` | The SDK's default silently drops misnamed arguments (`max_results` instead of `limit`), so the model gets default behaviour and no warning. mcp 2.3 has no setting for this, so it goes through the public `MCPServer.middleware` hook | Accept the SDK default |
 | D9 | Ids sorted for paging | BIL returns ids in no stable order, so `offset` needs a deterministic order | Order by date: would need every record fetched first |
 
 ## BIL API facts the code depends on

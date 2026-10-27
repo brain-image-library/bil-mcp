@@ -99,3 +99,12 @@ async def test_prompts(connect):
         assert names == {"find_datasets", "dataset_report"}
         p = await mcp_client.get_prompt("dataset_report", {"bildid": "rut"})
         assert "rut" in p.messages[0].content.text
+
+
+async def test_unknown_argument_is_rejected_with_suggestion(connect):
+    async with connect() as mcp_client:
+        r = await mcp_client.call_tool("search_datasets", {"filters": {"species": "Human"}, "limt": 5})
+        assert r.is_error
+        assert "Unknown argument(s) for search_datasets: 'limt' (did you mean 'limit'?)" in r.content[0].text
+        tools = {t.name: t for t in (await mcp_client.list_tools()).tools}
+        assert all(t.input_schema.get("additionalProperties") is False for t in tools.values())

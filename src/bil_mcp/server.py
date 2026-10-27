@@ -34,6 +34,7 @@ from .fields import FIELDS, UnknownFieldError
 from .files import list_files
 from .models import AccessInfo, FacetResult, FileListing, RelatedResult, SearchResult, https_url_for, summarize
 from .search import SearchError, facet_counts, related_datasets, search
+from .strict import RejectUnknownArguments
 
 log = logging.getLogger("bil_mcp")
 
@@ -85,6 +86,9 @@ mcp = MCPServer(
     version=__version__,
     lifespan=lifespan,
 )
+
+# Unknown argument names become tool errors instead of being silently dropped.
+mcp.middleware.append(RejectUnknownArguments(mcp))
 
 READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=True, idempotent_hint=True, destructive_hint=False)
 
