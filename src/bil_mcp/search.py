@@ -27,8 +27,8 @@ from .config import Settings
 from .fields import BY_KEY, Field, resolve, values_in_record
 from .models import (
     DatasetSummary,
-    FacetBucket,
-    FacetResult,
+    ValueCount,
+    FieldCounts,
     FilterStat,
     RelatedGroup,
     RelatedResult,
@@ -190,11 +190,11 @@ def _zero_hit_hints(stats: list[FilterStat]) -> list[str]:
                 msg += f" Did you mean: {', '.join(by_lower[c] for c in close)}?"
             else:
                 msg += f" Known values include: {', '.join(f.examples)}."
-        hints.append(msg + " Use facet_counts on a broader search to see real values.")
+        hints.append(msg + " Use count_by_field on a broader search to see real values.")
     return hints
 
 
-async def facet_counts(
+async def count_by_field(
     client: BILClient,
     field: str,
     filters: dict[str, FilterValue] | None = None,
@@ -203,7 +203,7 @@ async def facet_counts(
     top: int = 25,
     max_records: int = 3000,
     case_sensitive: bool = False,
-) -> FacetResult:
+) -> FieldCounts:
     """Count values of `field` over a set of datasets (given or searched).
 
     BIL values are not normalized ("Mouse" and "mouse" both occur), so by
@@ -229,14 +229,14 @@ async def facet_counts(
         for k, v in keys.items():
             counter[k] += 1
             spellings.setdefault(k, Counter())[v] += 1
-    return FacetResult(
+    return FieldCounts(
         field=f.key,
         datasets_considered=len(considered),
         datasets_total=len(ids),
         truncated=len(ids) > len(considered),
         missing_value=missing,
         buckets=[
-            FacetBucket(value=spellings[k].most_common(1)[0][0], count=c,
+            ValueCount(value=spellings[k].most_common(1)[0][0], count=c,
                         variants=sorted(spellings[k]) if len(spellings[k]) > 1 else [])
             for k, c in counter.most_common(max(1, top))
         ],

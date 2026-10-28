@@ -89,7 +89,7 @@ It has no authentication, so keep it on localhost.
 | `search_datasets` | Filters + free text → total count, summaries, remaining ids, reproducible query URLs |
 | `get_dataset` | Full record by bildid or DOI, optionally only some sections |
 | `get_dataset_summaries` | Summaries for up to 200 ids |
-| `facet_counts` | Value counts of one field over a search or id list ("which techniques?") |
+| `count_by_field` | Value counts of one field over a search or id list ("which techniques?") |
 | `find_related_datasets` | Other datasets from the same BICAN donor / tissue / section |
 | `get_access_info` | HTTPS URL, `wget` command, Bridges-2 path, viewer link, license |
 | `list_dataset_files` | One directory level from the download server (no downloading) |

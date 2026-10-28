@@ -28,7 +28,7 @@ def connect(fake, monkeypatch):
 
 
 EXPECTED_TOOLS = {
-    "search_datasets", "get_dataset", "get_dataset_summaries", "facet_counts", "find_related_datasets",
+    "search_datasets", "get_dataset", "get_dataset_summaries", "count_by_field", "find_related_datasets",
     "get_access_info", "list_dataset_files", "get_group_doi", "list_fields",
 }
 
@@ -69,9 +69,9 @@ async def test_get_dataset_sections(connect):
         assert list(r.structured_content) == ["Specimen"]
 
 
-async def test_facets_and_access(connect):
+async def test_value_counts_and_access(connect):
     async with connect() as mcp_client:
-        f = await mcp_client.call_tool("facet_counts", {"field": "consortium", "filters": {"technique": "MERFISH"}})
+        f = await mcp_client.call_tool("count_by_field", {"field": "consortium", "filters": {"technique": "MERFISH"}})
         assert f.structured_content["datasets_considered"] == 5
         a = await mcp_client.call_tool("get_access_info", {"bildid": "ace-ban-win"})
         assert a.structured_content["https_url"] == "https://download.brainimagelibrary.org/cf/1c/cf1c1a431ef8d021/"

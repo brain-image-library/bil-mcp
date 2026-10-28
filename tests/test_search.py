@@ -1,9 +1,9 @@
-"""Search composition: intersections, OR lists, exact matching, facets, linkage."""
+"""Search composition: intersections, OR lists, exact matching, value counts, linkage."""
 
 import pytest
 
 from bil_mcp.fields import UnknownFieldError, resolve
-from bil_mcp.search import SearchError, facet_counts, related_datasets, search
+from bil_mcp.search import SearchError, count_by_field, related_datasets, search
 
 
 def test_resolve_aliases_and_section_syntax():
@@ -65,11 +65,11 @@ async def test_summary_fields(client):
     assert s.viewer_url.endswith("bildid=rut")
 
 
-async def test_facets_merge_case_variants(client):
-    f = await facet_counts(client, "species", {"technique": "MERFISH"})
+async def test_value_counts_merge_case_variants(client):
+    f = await count_by_field(client, "species", {"technique": "MERFISH"})
     mouse = next(b for b in f.buckets if b.value.lower() == "mouse")
     assert mouse.count == 4 and set(mouse.variants) == {"Mouse", "mouse"}
-    f2 = await facet_counts(client, "species", {"technique": "MERFISH"}, case_sensitive=True)
+    f2 = await count_by_field(client, "species", {"technique": "MERFISH"}, case_sensitive=True)
     assert {b.value for b in f2.buckets} >= {"Mouse", "mouse"}
 
 

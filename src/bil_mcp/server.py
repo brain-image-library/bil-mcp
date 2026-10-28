@@ -36,8 +36,8 @@ from .client import BILAPIError, BILClient
 from .config import Settings
 from .fields import FIELDS, UnknownFieldError
 from .files import list_files
-from .models import AccessInfo, FacetResult, FileListing, RelatedResult, SearchResult, https_url_for, summarize
-from .search import SearchError, facet_counts, related_datasets, search
+from .models import AccessInfo, FieldCounts, FileListing, RelatedResult, SearchResult, https_url_for, summarize
+from .search import SearchError, count_by_field, related_datasets, search
 from .audit import LogToolCalls
 from .strict import RejectUnknownArguments
 
@@ -76,13 +76,13 @@ How to work well with these tools:
 - If unsure of a field name, read the bil://fields resource or call list_fields.
 - API matching is case-insensitive SUBSTRING ('sex=male' also matches 'Female'); use
   match='exact' to verify against full metadata.
-- To summarize a large result ("which species / techniques?"), use facet_counts rather than
+- To summarize a large result ("which species / techniques?"), use count_by_field rather than
   paging through search results.
 - get_dataset returns full metadata; prefer summaries unless details are needed.
 - BICAN datasets carry donor/tissue/section ids in Specimen.linkage; find_related_datasets
   follows them.
 - If a search returns 0 hits, tell the user which filter emptied it (see the result's notes) and
-  suggest real values from facet_counts; don't silently retry with guessed values.
+  suggest real values from count_by_field; don't silently retry with guessed values.
 - Always give users the bildid and viewer_url so they can check results themselves.
 """
 
@@ -209,9 +209,9 @@ async def get_dataset_summaries(
     return {"datasets": found, "not_found": missing}
 
 
-# Python name differs from the tool name to avoid clashing with search.facet_counts.
-@bil_tool(name="facet_counts")
-async def facet_counts_tool(
+# Python name differs from the tool name to avoid clashing with search.count_by_field.
+@bil_tool(name="count_by_field")
+async def count_by_field_tool(
     ctx: Context,
     field: Annotated[str, Field(description="Field to count, e.g. 'species', 'technique', 'consortium'")],
     filters: FilterDict = None,
@@ -220,7 +220,7 @@ async def facet_counts_tool(
     top: Annotated[int, Field(ge=1, le=200)] = 25,
     max_records: Annotated[int, Field(ge=1, le=20000, description="Cap on records fetched to count")] = 3000,
     case_sensitive: Annotated[bool, Field(description="Keep 'Mouse' and 'mouse' as separate values")] = False,
-) -> FacetResult:
+) -> FieldCounts:
     """Break a set of datasets down by the values of one field.
 
     Good for overview questions: 'which techniques exist for human data?',
@@ -229,7 +229,7 @@ async def facet_counts_tool(
     if not (filters or text or bildids):
         raise ToolError("Give filters, text, or bildids to define the set to count.")
     try:
-        return await facet_counts(_client(ctx), field, filters, text, bildids, top, max_records, case_sensitive)
+        return await count_by_field(_client(ctx), field, filters, text, bildids, top, max_records, case_sensitive)
     except Exception as e:
         raise _tool_error(e) from e
 
@@ -325,7 +325,7 @@ async def get_group_doi(
 
 @bil_tool()
 def list_fields() -> list[dict[str, Any]]:
-    """All filter keys usable in search_datasets / facet_counts, with descriptions and example values."""
+    """All filter keys usable in search_datasets / count_by_field, with descriptions and example values."""
     return _field_catalog()
 
 
@@ -360,7 +360,7 @@ def find_datasets(question: str) -> str:
         f"Research question: {question}\n\n"
         "Use the Brain Image Library tools to answer it:\n"
         "1. Pick filters (call list_fields if unsure) and run search_datasets.\n"
-        "2. If there are many hits, use facet_counts on species, technique and consortium to describe them.\n"
+        "2. If there are many hits, use count_by_field on species, technique and consortium to describe them.\n"
         "3. Report: total hits, a table of the most relevant datasets (bildid, title, species, technique, "
         "viewer_url), and the filter query URLs so the search is reproducible.\n"
         "4. Say clearly what you could NOT determine from metadata."

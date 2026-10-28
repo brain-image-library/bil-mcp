@@ -53,19 +53,19 @@ class SearchResult(BaseModel):
     notes: list[str] = []
 
 
-class FacetBucket(BaseModel):
+class ValueCount(BaseModel):
     value: str
     count: int
     variants: list[str] = Field(default=[], description="Spellings merged into this bucket")
 
 
-class FacetResult(BaseModel):
+class FieldCounts(BaseModel):
     field: str
     datasets_considered: int
     datasets_total: int
     truncated: bool
     missing_value: int = Field(description="Datasets with no value for this field")
-    buckets: list[FacetBucket]
+    buckets: list[ValueCount]
 
 
 class RelatedGroup(BaseModel):

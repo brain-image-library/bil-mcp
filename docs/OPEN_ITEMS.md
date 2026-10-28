@@ -11,13 +11,13 @@ Things noticed while building and teaching, deliberately left for later.
 
 ## Behaviour to decide
 - **Paging.** Keep `limit`/`offset` paging, return all ids with N summaries, or steer large
-  sets to `facet_counts`?
+  sets to `count_by_field`?
 - **`match="exact"` on multi-specimen datasets.** Currently a dataset matches if ANY specimen
   matches (32 of 287 male spatial-transcriptomics datasets are mixed-sex). Alternatives:
   ALL specimens must match, or report the mix in each summary.
 - **Cache size limit** counts entries (50,000), not bytes. Normal use is a few MB; caching all
   ~17k records would be ~150 MB. Consider a byte-based limit.
-- **Species synonyms.** Facets merge case variants only ("Mouse"/"mouse"), not
+- **Species synonyms.** Value counts merge case variants only ("Mouse"/"mouse"), not
   "marmoset"/"common marmoset". The future IR layer likely needs a synonym map; also worth
   reporting to BIL curation.
 - **Concurrency cap (4) vs BIL capacity.** Ask BIL operators for worker count / rate limits.

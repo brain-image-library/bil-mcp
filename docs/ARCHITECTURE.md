@@ -11,7 +11,7 @@
  │  bil-mcp process  ◄─────────────────────────┘│
  │   server.py   MCP layer: tools/resources/prompts
  │   strict.py   middleware: reject unknown tool arguments
- │   search.py   multi-filter logic, facets, linkage
+ │   search.py   multi-filter logic, value counts, linkage
  │   files.py    download-server directory pages
  │   client.py   HTTP + retry + cache (no MCP)  │
  │   fields.py   filter key → (endpoint, field) │
@@ -32,7 +32,7 @@ and tested without a server.
 |---|---|---|---|
 | D1 | Official `mcp` Python SDK (v2, `MCPServer`) | Tracks the spec, few dependencies, matches the official docs; lets you drop down to the low-level `Server` | Standalone `fastmcp` 2.x: more features, more abstraction |
 | D2 | stdio transport by default | Local, per-user, no auth or ports; it's what desktop clients launch | Streamable HTTP is available behind a flag for shared or remote use |
-| D3 | Live API + in-memory TTL cache | Always fresh, no index to rebuild; BIL is fast (~0.2 s/query, ~0.5 s per 200-record POST) | A local SQLite index: instant facets, but goes stale and adds code |
+| D3 | Live API + in-memory TTL cache | Always fresh, no index to rebuild; BIL is fast (~0.2 s/query, ~0.5 s per 200-record POST) | A local SQLite index: instant value counts, but goes stale and adds code |
 | D4 | Field-level filters; IR seam in `search.search()` | Maps 1:1 to the verified API, so nothing is invented | Intent-level IR now: would mean guessing at a schema still being designed |
 | D5 | Links + one-level file listing, no downloads | BIL datasets are often terabytes; an agent shouldn't start those transfers | Download tool with size caps |
 | D6 | Pydantic return types | SDK publishes an output schema and returns structured content; forces compact responses | Raw dicts (still used where the shape is BIL's own, e.g. `get_dataset`) |
