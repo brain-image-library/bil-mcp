@@ -10,11 +10,11 @@ Things noticed while building and teaching, deliberately left for later.
   the real page and adapt `parse_index`.
 
 ## Behaviour to decide
-- **Paging.** Keep `limit`/`offset` paging, return all ids with N summaries, or steer large
-  sets to `count_by_field`?
-- **`match="exact"` on multi-specimen datasets.** Currently a dataset matches if ANY specimen
-  matches (32 of 287 male spatial-transcriptomics datasets are mixed-sex). Alternatives:
-  ALL specimens must match, or report the mix in each summary.
+- ~~**Paging.**~~ Decided Oct 2026: search returns breakdowns + 20 newest rows (ARCHITECTURE D11).
+- ~~**`match="exact"` on multi-specimen datasets.**~~ Decided Oct 2026: keep ANY-specimen matching,
+  report `specimen_sex` per row and `specimen_sex_mix` per search.
+- **Species synonyms in breakdowns.** `fetch_all` on sex=Male shows `human 821` and
+  `Homo sapiens 558` as separate values; see "Species synonyms" below.
 - **Cache size limit** counts entries (50,000), not bytes. Normal use is a few MB; caching all
   ~17k records would be ~150 MB. Consider a byte-based limit.
 - **Species synonyms.** Value counts merge case variants only ("Mouse"/"mouse"), not
@@ -23,6 +23,4 @@ Things noticed while building and teaching, deliberately left for later.
 - **Concurrency cap (4) vs BIL capacity.** Ask BIL operators for worker count / rate limits.
 
 ## Distribution
-- **Package as a Claude Desktop extension (`.mcpb`)** so BIL users can install with one click
-  instead of uv + git + config editing (`manifest.json` + `mcpb pack`). Docker MCP Toolkit is the
-  alternative for users who run many servers across several MCP clients.
+Moved to [ROADMAP.md](ROADMAP.md).
