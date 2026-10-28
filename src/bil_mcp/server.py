@@ -67,21 +67,24 @@ async def lifespan(_server: MCPServer) -> AsyncIterator[AppState]:
         await client.aclose()
 
 
-INSTRUCTIONS = """\
+# Shown in the instructions and tool descriptions, so the agent sees the real limit.
+STATS_LIMIT = Settings.from_env().stats_limit
+
+INSTRUCTIONS = f"""\
 Tools for the Brain Image Library (BIL), the BRAIN Initiative archive for brain microscopy
 and spatial transcriptomics data. Datasets are identified by bildids like 'ace-ban-win'.
 
 How to work well with these tools:
 - Start with search_datasets. Filters are AND-ed; a list value is OR-ed within a field.
 - search_datasets always returns the total and how many datasets each filter matches on its own.
-  Up to a limit (3000 matches by default) it also reads every matching record and returns
+  Up to {STATS_LIMIT} matches it also reads every matching record and returns
   breakdowns (species, technique, consortium, contributor, specimen sex) and brief rows for the
   20 newest datasets (all of them when there are 20 or fewer). Above the limit it returns counts only.
 - Each result has next_steps: offer those choices to the user. When a choice costs waiting time
   (fetch_all), let the user decide, and pass on what the step says about speed and caching.
 - Records read by any tool stay cached in this server (1 hour by default), so follow-up searches
   over the same datasets return almost instantly.
-- To narrow by a breakdown value, add {filter_key: value} to the filters.
+- To narrow by a breakdown value, add {{filter_key: value}} to the filters.
 - get_dataset_summaries: full summaries for chosen bildids, or the next page of a search.
   get_dataset: the full record of one dataset (large; pass sections). count_by_field: a breakdown
   by any other field.
@@ -119,7 +122,8 @@ def bil_tool(name: str | None = None):
     the model reads (and the context pays for) only the text.
     """
     def decorator(fn):
-        return mcp.tool(name=name, description=inspect.cleandoc(fn.__doc__ or ""), annotations=READ_ONLY)(fn)
+        doc = inspect.cleandoc(fn.__doc__ or "").replace("{stats_limit}", str(STATS_LIMIT))
+        return mcp.tool(name=name, description=doc, annotations=READ_ONLY)(fn)
     return decorator
 
 
@@ -156,7 +160,7 @@ MatchArg = Annotated[
 TextArg = Annotated[str | None, Field(description="Free text searched across all metadata")]
 TextModeArg = Annotated[Literal["all", "any"], Field(description="'all' = every word must match")]
 FetchAllArg = Annotated[
-    bool, Field(description="Read all matching records even above the automatic limit (3000). "
+    bool, Field(description=f"Read all matching records even above the automatic limit ({STATS_LIMIT}). "
                             "Only after the user agreed to wait")]
 
 
@@ -172,7 +176,7 @@ async def search_datasets(
     """Search BIL datasets by metadata filters and/or free text.
 
     Always returns the total and per-filter match counts with reproducible API URLs.
-    Up to 3000 matches it also returns breakdowns of all matches (species, technique,
+    Up to {stats_limit} matches it also returns breakdowns of all matches (species, technique,
     consortium, contributor, specimen sex) and brief rows for the 20 newest.
     Above that it returns counts only; next_steps says what to ask the user.
     """
@@ -250,7 +254,7 @@ async def count_by_field_tool(
     bildids: Annotated[list[str] | None, Field(description="Count over these ids instead of a search")] = None,
     top: Annotated[int, Field(ge=1, le=200)] = 25,
     max_records: Annotated[
-        int | None, Field(ge=1, le=20000, description="Cap on records read to count (default 3000)")] = None,
+        int | None, Field(ge=1, le=20000, description=f"Cap on records read to count (default {STATS_LIMIT})")] = None,
     case_sensitive: Annotated[bool, Field(description="Keep 'Mouse' and 'mouse' as separate values")] = False,
 ) -> FieldCounts:
     """Break a set of datasets down by the values of one field.

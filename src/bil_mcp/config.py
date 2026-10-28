@@ -39,8 +39,9 @@ class Settings:
     max_concurrency: int = 4
     max_retries: int = 2
     # Above this many matches, tools don't fetch records unless asked (fetch_all=true).
-    # 200 records per POST, 4 POSTs at a time, 0.3-1 s per round: 3000 records take a few seconds.
-    stats_limit: int = 3000
+    # 200 records per POST, 4 POSTs at a time, 0.3-1 s per round: 2000 records = 10 POSTs in
+    # 3 rounds, measured under 5 s. Tool descriptions read this value (server.STATS_LIMIT).
+    stats_limit: int = 2000
 
     @classmethod
     def from_env(cls) -> "Settings":

@@ -8,7 +8,7 @@ Background on what other archives ship: the DANDI MCP landscape review (Oct 2026
 - [x] Search, dataset details, field values / `count_by_field`, file listing, access info, related datasets
 - [x] Strict arguments, structured outputs, readable errors, audit log, live contract tests
 - [ ] Verify `list_dataset_files` against the real download server (see OPEN_ITEMS)
-- [x] Settle paging and `match="exact"` behaviour: breakdowns + 20 newest rows, `fetch_all` above 3000, sex mix reported (ARCHITECTURE D11)
+- [x] Settle paging and `match="exact"` behaviour: breakdowns + 20 newest rows, `fetch_all` above 2000, sex mix reported (ARCHITECTURE D11)
 
 ## Next: distribution
 - [ ] Move the repo to a BIL/PSC GitHub org (not a personal account)

@@ -12,7 +12,7 @@ from bil_mcp.search import search
 CASES = [
     ("40 matches", {"species": "Human", "technique": "MERFISH"}, {}),
     ("medium (20 newest)", {"generalmodality": "spatial transcriptomics", "sex": "Male"}, {"match": "exact"}),
-    ("large (> 3000)", {"sex": "Male"}, {}),
+    ("large (> 2000)", {"sex": "Male"}, {}),
     ("large, fetch_all", {"sex": "Male"}, {"fetch_all": True}),
     ("narrowed after fetch_all", {"sex": "Male", "technique": "MERFISH"}, {}),
 ]
