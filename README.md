@@ -14,10 +14,10 @@ The server turns requests like that into calls against the public
 | BIL API on its own | With bil-mcp |
 |---|---|
 | One field per query | Multi-filter AND, OR lists, AND-ed full-text words |
-| Returns only ids | Compact summaries, paging, facet counts |
+| Returns only ids | Compact summaries, paging, and value counts ("how many of these are mouse / human / marmoset?") |
 | Substring match (`sex=male` also matches `Female`) | `match="exact"` checks each hit against its full record |
-| Values not normalized (`Mouse` / `mouse`) | Facets merge case variants |
-| BICAN linkage is buried in records | `find_related_datasets` follows donor / tissue / section ids |
+| Search ignores upper/lower case, but the stored values are spelled inconsistently (`Mouse` in 384 spatial-transcriptomics datasets, `mouse` in 48), so counting them naively splits one species in two | Value counts merge spellings that differ only in case (`Mouse` + `mouse` = 432) |
+| Finding other datasets from the same BICAN donor, tissue or section takes several manual steps: retrieve the dataset, read the specimen ids in its `Specimen.linkage` field, then query each id | `find_related_datasets` does all of that in one call |
 
 ## Quick start
 
