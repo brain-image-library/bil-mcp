@@ -62,8 +62,13 @@ async def test_retrieve_post_partial(live):
 
 
 async def test_end_to_end_search(live):
-    r = await search(live, {"species": "Human", "technique": "MERFISH"}, limit=3)
-    assert r.total > 0 and r.datasets[0].species
+    r = await search(live, {"species": "Human", "technique": "MERFISH"})
+    assert r.total > 0 and r.records_fetched and r.datasets[0].species and r.breakdowns
+
+
+async def test_large_search_is_counts_only(live):
+    r = await search(live, {"sex": "Male"})
+    assert r.total > live.s.stats_limit and not r.records_fetched and r.next_steps
 
 
 async def test_download_server_listing(live):

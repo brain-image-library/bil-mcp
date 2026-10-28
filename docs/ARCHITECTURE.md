@@ -39,7 +39,8 @@ and tested without a server.
 | D7 | Errors become `ToolError` | The model gets a readable message (`is_error: true`) it can recover from, and the session stays up | Letting exceptions escape |
 | D8 | Lifespan-managed shared client | One connection pool and one cache per process, closed cleanly on shutdown | A client per call: no caching, slower |
 | D10 | Unknown tool arguments are rejected (middleware in `strict.py`); schemas carry `additionalProperties: false` | The SDK's default silently drops misnamed arguments (`max_results` instead of `limit`), so the model gets default behaviour and no warning. mcp 2.3 has no setting for this, so it goes through the public `MCPServer.middleware` hook | Accept the SDK default |
-| D9 | Ids sorted for paging | BIL returns ids in no stable order, so `offset` needs a deterministic order | Order by date: would need every record fetched first |
+| D9 | Ids sorted by bildid, rows ordered newest first | BIL returns ids in no stable order; sorting makes results reproducible. Ordering by date needs the records, which D11 now fetches anyway | Paging over bare ids |
+| D11 | Search reads every record up to `stats_limit` (3000) and returns breakdowns + 20 brief rows, never all records | GETs (ids) are cheap; POSTs cost 0.3–1 s per round of 4×200 records. Fetching is fast, but sending records to the model is not: 1000 summaries ≈ 575k chars. So the server reads everything and returns a small result. Above the limit it returns counts and `next_steps`, and the agent asks the user (narrow, or `fetch_all`). Records stay in the cache, so narrowing afterwards needs no POSTs | `limit`/`offset` pages plus up to 500 bare ids (the old design: ~14k chars at `limit=10`, mostly ids) |
 
 ## BIL API facts the code depends on
 
@@ -67,9 +68,11 @@ every offline test passed. The live test caught it.
 2. `search.matching_ids` resolves each key through `fields.resolve` and runs
    `GET /query/specimen?species=Human` and `GET /query/dataset?technique=MERFISH` **concurrently**.
 3. It intersects the two id sets (1273 ∩ 280 → 40) and sorts them.
-4. (If `match="exact"`) it retrieves all candidates and keeps only those whose field equals the value.
-5. It retrieves just the requested page (`POST /retrieve`) and summarizes each record.
-6. It returns a `SearchResult`. The SDK serializes it as `structuredContent`, plus a text copy for
+4. `search.resolve_set`: 40 ≤ `stats_limit`, so it retrieves all 40 records (`POST /retrieve`, one
+   batch; cached). Above the limit it stops here and returns counts + `next_steps`.
+5. (If `match="exact"`) it keeps only records whose field equals the value (any specimen).
+6. It builds breakdowns of all matches and brief rows for the 20 newest.
+7. It returns a `SearchResult`. The SDK serializes it as `structuredContent`, plus a text copy for
    older clients.
 
 ## Where to extend

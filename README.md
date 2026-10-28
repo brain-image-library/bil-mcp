@@ -86,9 +86,9 @@ It has no authentication, so keep it on localhost.
 
 | Tool | Purpose |
 |---|---|
-| `search_datasets` | Filters + free text → total count, summaries, remaining ids, reproducible query URLs |
+| `search_datasets` | Filters + free text → total, per-filter counts with reproducible query URLs; up to 3000 matches also breakdowns (species, technique, consortium, contributor, specimen sex) and the 20 newest as brief rows. Above that, counts only and `next_steps` for the agent to offer (narrow, or `fetch_all`) |
 | `get_dataset` | Full record by bildid or DOI, optionally only some sections |
-| `get_dataset_summaries` | Summaries for up to 200 ids |
+| `get_dataset_summaries` | Summaries for up to 200 ids, or one page of a search (newest first, `limit`/`offset`, `detail="brief"`) |
 | `count_by_field` | Value counts of one field over a search or id list ("which techniques?") |
 | `find_related_datasets` | Other datasets from the same BICAN donor / tissue / section |
 | `get_access_info` | HTTPS URL, `wget` command, Bridges-2 path, viewer link, license |
@@ -105,7 +105,7 @@ can pick from the client's prompt menu.
 
 ```json
 {"filters": {"species": "Mouse", "generalmodality": "spatial transcriptomics", "consortium": "BICAN"},
- "text": "hypothalamus", "match": "exact", "limit": 20}
+ "text": "hypothalamus", "match": "exact"}
 ```
 
 * Keys are short names (`species`, `technique`, `contributorname`, `linkage.xid`, ...) or aliases

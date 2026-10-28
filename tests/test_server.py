@@ -49,6 +49,7 @@ async def test_search_tool_structured(connect):
         assert not r.is_error
         assert r.structured_content["total"] == 1
         assert r.structured_content["datasets"][0]["bildid"] == "ace-can-ill"
+        assert r.structured_content["breakdowns"][0]["filter_key"] == "species"
 
 
 async def test_bad_field_is_a_tool_error_not_a_crash(connect):
@@ -59,8 +60,16 @@ async def test_bad_field_is_a_tool_error_not_a_crash(connect):
 
 async def test_argument_validation(connect):
     async with connect() as mcp_client:
-        r = await mcp_client.call_tool("search_datasets", {"filters": {"species": "Human"}, "limit": 1000})
+        r = await mcp_client.call_tool("get_dataset_summaries", {"filters": {"species": "Human"}, "limit": 1000})
         assert r.is_error
+
+
+async def test_summaries_tool_needs_ids_or_search(connect):
+    async with connect() as mcp_client:
+        r = await mcp_client.call_tool("get_dataset_summaries", {})
+        assert r.is_error and "bildids" in r.content[0].text
+        r = await mcp_client.call_tool("get_dataset_summaries", {"bildids": ["rut"]})
+        assert r.structured_content["datasets"][0]["viewer_url"].endswith("bildid=rut")
 
 
 async def test_get_dataset_sections(connect):
@@ -103,9 +112,9 @@ async def test_prompts(connect):
 
 async def test_unknown_argument_is_rejected_with_suggestion(connect):
     async with connect() as mcp_client:
-        r = await mcp_client.call_tool("search_datasets", {"filters": {"species": "Human"}, "limt": 5})
+        r = await mcp_client.call_tool("search_datasets", {"filters": {"species": "Human"}, "mtch": "exact"})
         assert r.is_error
-        assert "Unknown argument(s) for search_datasets: 'limt' (did you mean 'limit'?)" in r.content[0].text
+        assert "Unknown argument(s) for search_datasets: 'mtch' (did you mean 'match'?)" in r.content[0].text
         tools = {t.name: t for t in (await mcp_client.list_tools()).tools}
         assert all(t.input_schema.get("additionalProperties") is False for t in tools.values())
 
@@ -114,9 +123,9 @@ async def test_tool_calls_are_logged_with_arguments(connect, caplog):
     import logging
     caplog.set_level(logging.INFO, logger="bil_mcp.audit")
     async with connect() as mcp_client:
-        await mcp_client.call_tool("search_datasets", {"text": "xenium", "limit": 3})
+        await mcp_client.call_tool("search_datasets", {"text": "xenium", "match": "exact"})
         await mcp_client.call_tool("search_datasets", {"filters": {"species": "Human"}, "limt": 5})
     lines = [r.getMessage() for r in caplog.records if r.name == "bil_mcp.audit"]
-    assert any('search_datasets {"text": "xenium", "limit": 3}' in l for l in lines)
+    assert any('search_datasets {"text": "xenium", "match": "exact"}' in l for l in lines)
     assert any(l.startswith("tool done") and " ok in " in l for l in lines)
     assert any(l.startswith("tool done") and " ERROR in " in l for l in lines)  # unknown argument

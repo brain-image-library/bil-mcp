@@ -36,8 +36,8 @@ from .client import BILAPIError, BILClient
 from .config import Settings
 from .fields import FIELDS, UnknownFieldError
 from .files import list_files
-from .models import AccessInfo, FieldCounts, FileListing, RelatedResult, SearchResult, https_url_for, summarize
-from .search import SearchError, count_by_field, related_datasets, search
+from .models import AccessInfo, FieldCounts, FileListing, RelatedResult, SearchResult, SummaryPage, https_url_for, summarize
+from .search import SearchError, count_by_field, dataset_summaries, related_datasets, search
 from .audit import LogToolCalls
 from .strict import RejectUnknownArguments
 
@@ -73,17 +73,27 @@ and spatial transcriptomics data. Datasets are identified by bildids like 'ace-b
 
 How to work well with these tools:
 - Start with search_datasets. Filters are AND-ed; a list value is OR-ed within a field.
+- search_datasets always returns the total and how many datasets each filter matches on its own.
+  Up to a limit (3000 matches by default) it also reads every matching record and returns
+  breakdowns (species, technique, consortium, contributor, specimen sex) and brief rows for the
+  20 newest datasets (all of them when there are 20 or fewer). Above the limit it returns counts only.
+- Each result has next_steps: offer those choices to the user. When a choice costs waiting time
+  (fetch_all), let the user decide, and pass on what the step says about speed and caching.
+- Records read by any tool stay cached in this server (1 hour by default), so follow-up searches
+  over the same datasets return almost instantly.
+- To narrow by a breakdown value, add {filter_key: value} to the filters.
+- get_dataset_summaries: full summaries for chosen bildids, or the next page of a search.
+  get_dataset: the full record of one dataset (large; pass sections). count_by_field: a breakdown
+  by any other field.
 - If unsure of a field name, read the bil://fields resource or call list_fields.
 - API matching is case-insensitive SUBSTRING ('sex=male' also matches 'Female'); use
-  match='exact' to verify against full metadata.
-- To summarize a large result ("which species / techniques?"), use count_by_field rather than
-  paging through search results.
-- get_dataset returns full metadata; prefer summaries unless details are needed.
+  match='exact' to check against full metadata. A dataset matches if ANY of its specimens matches;
+  specimen_sex on each row shows the mix (e.g. 'male 8 / female 4').
 - BICAN datasets carry donor/tissue/section ids in Specimen.linkage; find_related_datasets
   follows them.
 - If a search returns 0 hits, tell the user which filter emptied it (see the result's notes) and
   suggest real values from count_by_field; don't silently retry with guessed values.
-- Always give users the bildid and viewer_url so they can check results themselves.
+- Always give users the bildid and viewer link so they can check results themselves.
 """
 
 mcp = MCPServer(
@@ -138,26 +148,36 @@ FilterDict = Annotated[
 ]
 
 
+MatchArg = Annotated[
+    Literal["contains", "exact"],
+    Field(description="'contains' = BIL's substring match; 'exact' = keep a dataset only if a specimen/field "
+                      "value equals the filter value (needs the records)"),
+]
+TextArg = Annotated[str | None, Field(description="Free text searched across all metadata")]
+TextModeArg = Annotated[Literal["all", "any"], Field(description="'all' = every word must match")]
+FetchAllArg = Annotated[
+    bool, Field(description="Read all matching records even above the automatic limit (3000). "
+                            "Only after the user agreed to wait")]
+
+
 @bil_tool()
 async def search_datasets(
     ctx: Context,
     filters: FilterDict = None,
-    text: Annotated[str | None, Field(description="Free text searched across all metadata")] = None,
-    text_mode: Annotated[Literal["all", "any"], Field(description="'all' = every word must match")] = "all",
-    match: Annotated[
-        Literal["contains", "exact"],
-        Field(description="'contains' = BIL's substring match (fast); 'exact' = verify each hit's field equals the value"),
-    ] = "contains",
-    limit: Annotated[int, Field(ge=0, le=100, description="Summaries to return")] = 10,
-    offset: Annotated[int, Field(ge=0, description="Skip this many hits (paging)")] = 0,
+    text: TextArg = None,
+    text_mode: TextModeArg = "all",
+    match: MatchArg = "contains",
+    fetch_all: FetchAllArg = False,
 ) -> SearchResult:
     """Search BIL datasets by metadata filters and/or free text.
 
-    Returns the total hit count, short summaries for one page of hits, the remaining
-    matching bildids, and a reproducible API URL per filter.
+    Always returns the total and per-filter match counts with reproducible API URLs.
+    Up to 3000 matches it also returns breakdowns of all matches (species, technique,
+    consortium, contributor, specimen sex) and brief rows for the 20 newest.
+    Above that it returns counts only; next_steps says what to ask the user.
     """
     try:
-        return await search(_client(ctx), filters, text, text_mode, match, limit, offset)
+        return await search(_client(ctx), filters, text, text_mode, match, fetch_all)
     except Exception as e:
         raise _tool_error(e) from e
 
@@ -196,17 +216,28 @@ async def get_dataset(
 @bil_tool()
 async def get_dataset_summaries(
     ctx: Context,
-    bildids: Annotated[list[str], Field(min_length=1, max_length=200, description="Up to 200 bildids")],
-) -> dict[str, Any]:
-    """Short summaries for a list of bildids (e.g. ids returned by search_datasets)."""
-    c = _client(ctx)
+    bildids: Annotated[list[str] | None, Field(max_length=200, description="Up to 200 bildids")] = None,
+    filters: FilterDict = None,
+    text: TextArg = None,
+    text_mode: TextModeArg = "all",
+    match: MatchArg = "contains",
+    fetch_all: FetchAllArg = False,
+    limit: Annotated[int, Field(ge=1, le=100, description="Search mode: datasets per page")] = 20,
+    offset: Annotated[int, Field(ge=0, description="Search mode: skip this many (newest first)")] = 0,
+    detail: Annotated[Literal["full", "brief"], Field(description="'full' summaries or one-line 'brief' rows")] = "full",
+) -> SummaryPage:
+    """Summaries of chosen datasets, or one page of a search's matches.
+
+    Give bildids (all are returned, in order), OR the same filters/text/match as
+    search_datasets to page through its matches newest first with limit/offset.
+    """
+    if not (bildids or filters or text):
+        raise ToolError("Give bildids, or filters/text to page through a search.")
     try:
-        recs = await c.retrieve_many(bildids)
+        return await dataset_summaries(_client(ctx), bildids, filters, text, text_mode, match, fetch_all,
+                                       limit, offset, detail)
     except Exception as e:
         raise _tool_error(e) from e
-    found = [summarize(i, recs[i], c.s).model_dump() for i in bildids if i in recs]
-    missing = [i for i in bildids if i not in recs]
-    return {"datasets": found, "not_found": missing}
 
 
 # Python name differs from the tool name to avoid clashing with search.count_by_field.
@@ -218,7 +249,8 @@ async def count_by_field_tool(
     text: Annotated[str | None, Field(description="Optional free text to restrict the set")] = None,
     bildids: Annotated[list[str] | None, Field(description="Count over these ids instead of a search")] = None,
     top: Annotated[int, Field(ge=1, le=200)] = 25,
-    max_records: Annotated[int, Field(ge=1, le=20000, description="Cap on records fetched to count")] = 3000,
+    max_records: Annotated[
+        int | None, Field(ge=1, le=20000, description="Cap on records read to count (default 3000)")] = None,
     case_sensitive: Annotated[bool, Field(description="Keep 'Mouse' and 'mouse' as separate values")] = False,
 ) -> FieldCounts:
     """Break a set of datasets down by the values of one field.
@@ -360,7 +392,8 @@ def find_datasets(question: str) -> str:
         f"Research question: {question}\n\n"
         "Use the Brain Image Library tools to answer it:\n"
         "1. Pick filters (call list_fields if unsure) and run search_datasets.\n"
-        "2. If there are many hits, use count_by_field on species, technique and consortium to describe them.\n"
+        "2. Describe the matches with the result's breakdowns. If records were not fetched (too many matches), "
+        "follow next_steps: ask the user whether to narrow the search or fetch everything.\n"
         "3. Report: total hits, a table of the most relevant datasets (bildid, title, species, technique, "
         "viewer_url), and the filter query URLs so the search is reproducible.\n"
         "4. Say clearly what you could NOT determine from metadata."

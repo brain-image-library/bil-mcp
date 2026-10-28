@@ -9,6 +9,13 @@ concurrently and intersects the returned id sets. It also:
 * optionally verifies hits against full metadata (``match="exact"``),
   because API matching is substring-based (``sex=male`` matches "Female")
 
+Getting ids is cheap (one GET per filter value); full records cost POSTs
+(~0.3 s per 200). So up to ``Settings.stats_limit`` matches, ``search()``
+fetches every record and returns breakdowns plus a few brief rows: the
+response stays small however many records were read. Above the limit it
+returns counts only, and the agent asks the user whether to narrow the
+search or fetch everything (``fetch_all=True``).
+
 This is the seam where a future intent-level IR (intermediate
 representation) translator plugs in: it would produce the same
 ``filters``/``text`` inputs that ``search()`` already accepts.
@@ -18,7 +25,10 @@ from __future__ import annotations
 
 import asyncio
 import difflib
+import json
+import math
 from collections import Counter
+from dataclasses import dataclass
 from typing import Literal, Union
 from urllib.parse import urlencode
 
@@ -26,6 +36,7 @@ from .client import BILClient
 from .config import Settings
 from .fields import BY_KEY, Field, resolve, values_in_record
 from .models import (
+    Breakdown,
     DatasetSummary,
     ValueCount,
     FieldCounts,
@@ -33,15 +44,20 @@ from .models import (
     RelatedGroup,
     RelatedResult,
     SearchResult,
+    SummaryPage,
+    bildate,
+    brief,
+    sex_mix,
     summarize,
 )
 
 FilterValue = Union[str, list[str]]
 MatchMode = Literal["contains", "exact"]
 
-MAX_LIMIT = 100
-MAX_IDS_RETURNED = 500
-DEFAULT_VERIFY_LIMIT = 3000
+ROWS_SHOWN = 20        # brief rows in a search result: all matches if total <= 20, else the 20 newest
+BREAKDOWN_TOP = 5      # values listed per breakdown field
+BREAKDOWN_FIELDS = ("species", "technique", "consortium", "contributorname", "sex")
+SEX_MIX_ORDER = ("male only", "female only", "mixed", "unknown or not given")
 
 
 class SearchError(ValueError):
@@ -113,60 +129,170 @@ def _record_matches_exact(rec: dict, norm: list[tuple[Field, list[str]]]) -> boo
     return True
 
 
+def estimate_fetch_seconds(n: int, s: Settings) -> float:
+    """Rough time to fetch n records: POSTs of `retrieve_batch_size` ids, at most
+    `max_concurrency` at once. A round of POSTs took 0.3-1 s on the live API
+    (Oct 2026), slower for big records; 11,569 records took 14 s. Use 1 s/round
+    so the user is never promised less than it takes."""
+    batches = math.ceil(n / max(1, s.retrieve_batch_size))
+    rounds = math.ceil(batches / max(1, s.max_concurrency))
+    return float(max(rounds, 1))
+
+
+@dataclass
+class ResolvedSet:
+    ids: list[str]                    # matching ids, sorted by bildid
+    stats: list[FilterStat]
+    norm: list[tuple[Field, list[str]]]
+    records: dict[str, dict] | None   # every matching record, or None if not fetched
+    verified: bool
+    notes: list[str]
+
+
+async def resolve_set(
+    client: BILClient,
+    filters: dict[str, FilterValue] | None = None,
+    text: str | None = None,
+    text_mode: Literal["all", "any"] = "all",
+    match: MatchMode = "contains",
+    fetch_all: bool = False,
+) -> ResolvedSet:
+    """Ids for a search, plus every record when there are at most `stats_limit`
+    matches (or `fetch_all`). Records land in the client cache, so the next
+    search over the same datasets needs no POSTs."""
+    ids, stats, norm = await matching_ids(client, filters, text, text_mode)
+    notes: list[str] = []
+    if len(ids) > client.s.stats_limit and not fetch_all:
+        if match == "exact" and norm:
+            notes.append("match='exact' was not applied yet: it needs the records, which were not fetched.")
+        return ResolvedSet(ids, stats, norm, None, False, notes)
+    recs = await client.retrieve_many(ids)
+    if len(recs) < len(ids):
+        notes.append(f"{len(ids) - len(recs)} ids matched but could not be retrieved; they are left out.")
+        ids = [i for i in ids if i in recs]
+    verified = False
+    if match == "exact" and norm:
+        ids = [i for i in ids if _record_matches_exact(recs[i], norm)]
+        verified = True
+    return ResolvedSet(ids, stats, norm, recs, verified, notes)
+
+
+def _newest_first(ids: list[str], recs: dict[str, dict]) -> list[str]:
+    # ids are already sorted by bildid, and sort() is stable, so ties stay in id order.
+    return sorted(ids, key=lambda i: bildate(recs[i]), reverse=True)
+
+
+def _breakdown(recs: dict[str, dict], ids: list[str], f: Field, top: int = BREAKDOWN_TOP) -> Breakdown:
+    counter, spellings, missing = _tally(recs, ids, f)
+    return Breakdown(filter_key=f.key, distinct_values=len(counter), missing_value=missing,
+                     top=_buckets(counter, spellings, top))
+
+
 async def search(
     client: BILClient,
     filters: dict[str, FilterValue] | None = None,
     text: str | None = None,
     text_mode: Literal["all", "any"] = "all",
     match: MatchMode = "contains",
-    limit: int = 10,
-    offset: int = 0,
-    verify_limit: int = DEFAULT_VERIFY_LIMIT,
+    fetch_all: bool = False,
 ) -> SearchResult:
-    limit = max(0, min(limit, MAX_LIMIT))
-    offset = max(0, offset)
-    ids, stats, norm = await matching_ids(client, filters, text, text_mode)
-    notes: list[str] = []
-    verified = False
-
-    if match == "exact" and norm:
-        if len(ids) > verify_limit:
-            notes.append(
-                f"{len(ids)} candidates is more than verify_limit={verify_limit}; returned substring "
-                f"matches unverified. Add filters to narrow, then retry with match='exact'."
-            )
-        else:
-            recs = await client.retrieve_many(ids)
-            ids = [i for i in ids if i in recs and _record_matches_exact(recs[i], norm)]
-            verified = True
-
-    page = ids[offset : offset + limit]
-    recs = await client.retrieve_many(page)
-    summaries: list[DatasetSummary] = [summarize(i, recs[i], client.s) for i in page if i in recs]
-    if len(summaries) < len(page):
-        notes.append(f"{len(page) - len(summaries)} ids matched but could not be retrieved.")
-    if match == "contains" and any(f.key in ("sex", "species") for f, _ in norm):
+    rs = await resolve_set(client, filters, text, text_mode, match, fetch_all)
+    s = client.s
+    total = len(rs.ids)
+    notes = list(rs.notes)
+    if match == "contains" and any(f.key in ("sex", "species") for f, _ in rs.norm):
         notes.append("Substring matching is on: e.g. sex=Male also matches Female. Use match='exact' to be strict.")
     if text and text_mode == "all" and len(text.split()) > 1:
         notes.append("Multi-word text was treated as AND (one fulltext query per word).")
     if text and text_mode == "any" and len(text.split()) > 1:
         notes.append("Multi-word text was sent as ONE fulltext query ('+' in the URL is an encoded space); "
                      "BIL matches datasets containing ANY of the words.")
+    notes += _zero_hit_hints(rs.stats)
+    ttl_min = round(s.cache_ttl_s / 60)
+    base = dict(total=total, match_mode=match, verified=rs.verified, filters=rs.stats,
+                viewer_url_template=f"{s.viewer_base}?bildid={{bildid}}")
 
-    notes += _zero_hit_hints(stats)
+    if rs.records is None:
+        est = estimate_fetch_seconds(total, s)
+        return SearchResult(
+            **base, records_fetched=False, notes=notes,
+            next_steps=[
+                f"{total} matches is more than the automatic limit of {s.stats_limit}, so no records were "
+                "fetched: there are no breakdowns or example datasets yet. Ask the user which they prefer:",
+                "(a) Narrow the search with more filters. The filter stats show how many datasets each filter "
+                "matches on its own.",
+                f"(b) Get the breakdowns anyway: call search_datasets again with the same arguments plus "
+                f"fetch_all=true. It fetches all {total} records, roughly {est:.0f} s. Tell the user that the records "
+                f"then stay cached in this server for {ttl_min} minutes, so narrowing the search afterwards is "
+                "fast: each added filter needs only a quick id lookup, and no records are downloaded again.",
+            ] + ([
+                "match='exact' (e.g. to drop Female specimens from sex=Male) also needs the records, so on its "
+                "own it will not make this set smaller or bring it under the limit. Use it together with (a) or (b)."
+            ] if any(f.key in ("sex", "species") for f, _ in rs.norm) else []),
+        )
 
-    rest = ids[offset + limit : offset + limit + MAX_IDS_RETURNED]
+    recs = rs.records
+    if not total:
+        return SearchResult(**base, records_fetched=True, notes=notes, next_steps=[
+            "Tell the user which filter emptied the search (see notes) and suggest real values "
+            "(count_by_field on a broader search). Don't silently retry with guessed values."])
+
+    mix = Counter(sex_mix(recs[i]) for i in rs.ids)
+    breakdowns = [_breakdown(recs, rs.ids, BY_KEY[k]) for k in BREAKDOWN_FIELDS]
+    rows = [brief(i, recs[i]) for i in _newest_first(rs.ids, recs)[:ROWS_SHOWN]]
+
+    next_steps = []
+    if total > ROWS_SHOWN:
+        next_steps.append(
+            f"datasets lists the {ROWS_SHOWN} newest of {total}. Offer the user: narrow the search (the "
+            "breakdowns show how the matches split), or list more with get_dataset_summaries using the same "
+            f"filters/text/match plus offset={ROWS_SHOWN} and detail='brief'.")
+    example = next((b for b in breakdowns if b.filter_key == "contributorname" and b.top), None)
+    example_txt = (f", e.g. {json.dumps({example.filter_key: example.top[0].value})}" if example else "")
+    next_steps.append(
+        f"To look inside one group of a breakdown, add {{filter_key: value}} to the filters{example_txt}. "
+        f"The records are cached for {ttl_min} minutes, so this is fast. For sex, also pass match='exact'.")
+    next_steps.append("For full summaries of specific datasets, call get_dataset_summaries with their bildids.")
     return SearchResult(
-        total=len(ids),
-        offset=offset,
-        returned=len(summaries),
-        match_mode=match,
-        verified=verified,
-        filters=stats,
-        datasets=summaries,
-        bildids=rest,
-        notes=notes,
+        **base, records_fetched=True, breakdowns=breakdowns,
+        specimen_sex_mix={k: mix[k] for k in SEX_MIX_ORDER if mix[k]},
+        datasets=rows, notes=notes, next_steps=next_steps,
     )
+
+
+async def dataset_summaries(
+    client: BILClient,
+    bildids: list[str] | None = None,
+    filters: dict[str, FilterValue] | None = None,
+    text: str | None = None,
+    text_mode: Literal["all", "any"] = "all",
+    match: MatchMode = "contains",
+    fetch_all: bool = False,
+    limit: int = ROWS_SHOWN,
+    offset: int = 0,
+    detail: Literal["full", "brief"] = "full",
+) -> SummaryPage:
+    """Summaries for given bildids (all of them, in the order given), or one page
+    of a search's matches, newest first."""
+    make = (lambda i, r: summarize(i, r, client.s)) if detail == "full" else brief
+    if bildids:
+        if filters or text:
+            raise SearchError("Give bildids OR a search (filters/text), not both.")
+        ids = list(dict.fromkeys(i.strip() for i in bildids if i.strip()))
+        recs = await client.retrieve_many(ids)
+        found = [make(i, recs[i]) for i in ids if i in recs]
+        return SummaryPage(total=len(ids), offset=0, returned=len(found), order="as given", datasets=found,
+                           not_found=[i for i in ids if i not in recs])
+    rs = await resolve_set(client, filters, text, text_mode, match, fetch_all)
+    if rs.records is None:
+        raise SearchError(
+            f"{len(rs.ids)} matches is more than the automatic limit of {client.s.stats_limit}. Narrow the "
+            f"search, or pass fetch_all=true (roughly {estimate_fetch_seconds(len(rs.ids), client.s):.0f} s).")
+    limit = max(0, min(limit, 100))
+    offset = max(0, offset)
+    page = _newest_first(rs.ids, rs.records)[offset : offset + limit]
+    return SummaryPage(total=len(rs.ids), offset=offset, returned=len(page), order="newest first",
+                       datasets=[make(i, rs.records[i]) for i in page], notes=rs.notes)
 
 
 def _zero_hit_hints(stats: list[FilterStat]) -> list[str]:
@@ -194,33 +320,13 @@ def _zero_hit_hints(stats: list[FilterStat]) -> list[str]:
     return hints
 
 
-async def count_by_field(
-    client: BILClient,
-    field: str,
-    filters: dict[str, FilterValue] | None = None,
-    text: str | None = None,
-    bildids: list[str] | None = None,
-    top: int = 25,
-    max_records: int = 3000,
-    case_sensitive: bool = False,
-) -> FieldCounts:
-    """Count values of `field` over a set of datasets (given or searched).
-
-    BIL values are not normalized ("Mouse" and "mouse" both occur), so by
-    default values are grouped case-insensitively and shown with their most
-    common spelling.
-    """
-    f = resolve(field)
-    if bildids:
-        ids = list(dict.fromkeys(bildids))
-    else:
-        ids, _, _ = await matching_ids(client, filters, text)
-    considered = ids[:max_records]
-    recs = await client.retrieve_many(considered)
+def _tally(recs: dict[str, dict], ids: list[str], f: Field, case_sensitive: bool = False):
+    """Datasets per value of `f`. Values are grouped case-insensitively by default,
+    keeping every spelling seen ("Mouse", "mouse")."""
     counter: Counter[str] = Counter()
     spellings: dict[str, Counter[str]] = {}
     missing = 0
-    for i in considered:
+    for i in ids:
         rec = recs.get(i)
         raw = [v.strip() for v in values_in_record(rec, f)] if rec else []
         keys = {v if case_sensitive else v.casefold(): v for v in raw if v}
@@ -229,17 +335,49 @@ async def count_by_field(
         for k, v in keys.items():
             counter[k] += 1
             spellings.setdefault(k, Counter())[v] += 1
+    return counter, spellings, missing
+
+
+def _buckets(counter: Counter[str], spellings: dict[str, Counter[str]], top: int) -> list[ValueCount]:
+    return [
+        ValueCount(value=spellings[k].most_common(1)[0][0], count=c,
+                   variants=sorted(spellings[k]) if len(spellings[k]) > 1 else [])
+        for k, c in counter.most_common(max(1, top))
+    ]
+
+
+async def count_by_field(
+    client: BILClient,
+    field: str,
+    filters: dict[str, FilterValue] | None = None,
+    text: str | None = None,
+    bildids: list[str] | None = None,
+    top: int = 25,
+    max_records: int | None = None,
+    case_sensitive: bool = False,
+) -> FieldCounts:
+    """Count values of `field` over a set of datasets (given or searched).
+
+    BIL values are not normalized ("Mouse" and "mouse" both occur), so by
+    default values are grouped case-insensitively and shown with their most
+    common spelling. At most `max_records` records are read (default:
+    ``Settings.stats_limit``).
+    """
+    f = resolve(field)
+    if bildids:
+        ids = list(dict.fromkeys(bildids))
+    else:
+        ids, _, _ = await matching_ids(client, filters, text)
+    considered = ids[: max_records or client.s.stats_limit]
+    recs = await client.retrieve_many(considered)
+    counter, spellings, missing = _tally(recs, considered, f, case_sensitive)
     return FieldCounts(
         field=f.key,
         datasets_considered=len(considered),
         datasets_total=len(ids),
         truncated=len(ids) > len(considered),
         missing_value=missing,
-        buckets=[
-            ValueCount(value=spellings[k].most_common(1)[0][0], count=c,
-                        variants=sorted(spellings[k]) if len(spellings[k]) > 1 else [])
-            for k, c in counter.most_common(max(1, top))
-        ],
+        buckets=_buckets(counter, spellings, top),
     )
 
 

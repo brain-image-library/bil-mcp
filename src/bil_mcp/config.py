@@ -38,6 +38,9 @@ class Settings:
     retrieve_batch_size: int = 200
     max_concurrency: int = 4
     max_retries: int = 2
+    # Above this many matches, tools don't fetch records unless asked (fetch_all=true).
+    # 200 records per POST, 4 POSTs at a time, 0.3-1 s per round: 3000 records take a few seconds.
+    stats_limit: int = 3000
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -54,4 +57,5 @@ class Settings:
             retrieve_batch_size=_int("BIL_RETRIEVE_BATCH", d.retrieve_batch_size),
             max_concurrency=_int("BIL_MAX_CONCURRENCY", d.max_concurrency),
             max_retries=_int("BIL_MAX_RETRIES", d.max_retries),
+            stats_limit=_int("BIL_STATS_LIMIT", d.stats_limit),
         )
