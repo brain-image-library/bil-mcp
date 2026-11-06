@@ -44,10 +44,14 @@ and tested without a server.
 
 ## BIL API facts the code depends on
 
-All verified live in Oct 2026, and re-checked by `tests/test_live.py`:
+All verified live in Oct 2026 (facts 2 and 9 in Nov 2026), and re-checked by `tests/test_live.py` and
+`tests/test_taxonomy_live.py`:
 
 1. `/query/<endpoint>?<field>=<value>` takes **one** variable. Two are rejected.
-2. Matching is **case-insensitive substring**: `sex=Male` ⊇ `sex=Female`.
+2. Query values are **case-insensitive regular expressions**, searched anywhere in the field: a plain
+   word acts as a substring (`sex=Male` ⊇ `sex=Female`), `^mouse$` is exact, and an invalid pattern
+   (e.g. `(`) returns **HTTP 500**. So every filter value is sent through `re.escape`, and the
+   `species` filter sends one anchored pattern per BIL species string (`taxonomy.exact_pattern`).
 3. Multi-word `fulltext` is **OR**.
 4. "No hits" is **HTTP 404 + JSON** `{"success":"false","message":"GET failure, no entry found"}`.
    A 404 with an HTML body means the endpoint doesn't exist.
@@ -56,6 +60,10 @@ All verified live in Oct 2026, and re-checked by `tests/test_live.py`:
 6. `success` is the string `"true"`/`"false"`.
 7. `Dataset.bildirectory` `/bil/data/ab/cd/<uuid>/x` → `https://download.brainimagelibrary.org/ab/cd/<uuid>/x/`.
 8. Field values are not normalized (`Mouse`, `mouse`, `common marmoset`).
+9. `GET /stats?type=all` (undocumented) returns archive-wide counts, including a `species` list of
+   `{name, ...}` entries. The counts are **specimen entries, not datasets**: a dataset with several
+   specimens counts several times. Used only by the live test that checks `species_map.yaml` covers
+   every species string BIL holds; dataset counts always come from `/query` ids.
 
 Fact 4 is a lesson in why contract tests exist: the first version of the client treated every 404
 as "endpoint missing", and the fake API in the offline tests had the same wrong assumption, so
@@ -65,8 +73,11 @@ every offline test passed. The live test caught it.
 
 1. Client sends `tools/call`. The SDK validates arguments against the JSON Schema it generated
    from the function signature.
-2. `search.matching_ids` resolves each key through `fields.resolve` and runs
-   `GET /query/specimen?species=Human` and `GET /query/dataset?technique=MERFISH` **concurrently**.
+2. `search.matching_ids` resolves each key through `fields.resolve`. `species` goes through
+   `taxonomy.Taxonomy.search`: "Human" resolves to *Homo sapiens*, so it sends one anchored query per
+   BIL string for that organism (`^\s*human\s*$`, `^\s*homo\ sapiens\s*$`) and keeps a
+   `species_report`. Other values are escaped (`technique=MERFISH`). All queries run **concurrently**.
+   A species term that resolves to no organism BIL holds sends nothing and returns 0 with the report.
 3. It intersects the two id sets (1273 ∩ 280 → 40) and sorts them.
 4. `search.resolve_set`: 40 ≤ `stats_limit`, so it retrieves all 40 records (`POST /retrieve`, one
    batch; cached). Above the limit it stops here and returns counts + `next_steps`.

@@ -9,9 +9,10 @@ Every field below was checked against the live API (Oct 2026): it was accepted
 as a query variable. Fields the API rejects (``dataset_size``,
 ``number_of_files``, ``nameidentifierscheme``) are left out on purpose.
 
-Matching on the API side is a *case-insensitive substring* match:
-``species=mouse`` == ``species=Mouse``, and ``sex=male`` ALSO matches
-``Female``. ``search.py`` offers ``match="exact"`` to correct for that.
+The API treats a value as a *case-insensitive regex* searched anywhere in the
+field. ``search.py`` escapes values, so they match as substrings:
+``sex=male`` ALSO matches ``Female``; ``match="exact"`` corrects for that.
+``species`` is the exception: it is resolved through ``taxonomy.py``.
 """
 
 from __future__ import annotations

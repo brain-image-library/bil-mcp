@@ -34,6 +34,15 @@ async def test_query_is_substring(live):
     assert female <= male  # "male" is inside "Female"
 
 
+async def test_escaped_values_still_match(live):
+    """search.py sends re.escape(value): escaped spaces and hyphens must still match literally."""
+    import re
+    plain = await live.query("dataset", "generalmodality", "spatial transcriptomics")
+    escaped = await live.query("dataset", "generalmodality", re.escape("spatial transcriptomics"))
+    assert len(plain) == len(escaped) > 0
+    assert await live.query("specimen/linkage", "xid", re.escape("DO-OHTO1697"))
+
+
 async def test_no_hits_is_404_json_and_maps_to_empty(live):
     r = await live._http.get("/query/specimen", params={"species": "axolotl-zzz"})
     assert r.status_code == 404 and r.json()["message"] == "GET failure, no entry found"

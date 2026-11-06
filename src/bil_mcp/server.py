@@ -28,7 +28,7 @@ from typing import Annotated, Any, Literal
 
 from mcp.server.mcpserver import Context, MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
-from mcp.types import ToolAnnotations
+from mcp.types import CallToolResult, TextContent, ToolAnnotations
 from pydantic import Field
 
 from . import __version__
@@ -40,6 +40,8 @@ from .models import AccessInfo, FieldCounts, FileListing, RelatedResult, SearchR
 from .search import SearchError, count_by_field, dataset_summaries, related_datasets, search
 from .audit import LogToolCalls
 from .strict import RejectUnknownArguments
+from .taxonomy import Taxonomy
+from .version_check import update_notice
 
 log = logging.getLogger("bil_mcp")
 
@@ -48,6 +50,9 @@ log = logging.getLogger("bil_mcp")
 @dataclass
 class AppState:
     client: BILClient
+    taxonomy: Taxonomy
+    update_notice: str | None = None   # set once at startup; None if up to date or unknown
+    notice_sent: bool = False
 
 
 def make_client() -> BILClient:
@@ -58,13 +63,45 @@ def make_client() -> BILClient:
 @asynccontextmanager
 async def lifespan(_server: MCPServer) -> AsyncIterator[AppState]:
     """Runs once per server process: open one HTTP client (connection pool +
-    cache) and share it across every tool call, then close it on shutdown."""
+    cache), load the species taxonomy, check PyPI for a newer release (at most
+    ~2 s, silent on any error), and share all of it across every tool call."""
     client = make_client()
     log.info("BIL MCP server starting (api=%s)", client.s.api_base)
     try:
-        yield AppState(client=client)
+        tax = Taxonomy.load()
+        notice = await update_notice(client.http)
+        if notice:
+            log.warning(notice)
+        yield AppState(client=client, taxonomy=tax, update_notice=notice)
     finally:
         await client.aclose()
+
+
+class AttachUpdateNotice:
+    """Middleware: add the update notice (if any) to the first tool result.
+
+    Once per server process, which on stdio (how local users run bil-mcp) is one
+    session. The SDK gives middleware no public per-connection handle, so on
+    streamable-http only the first session after startup gets it. It is an extra
+    text block, so the structured result (and its schema) is unchanged."""
+
+    async def __call__(self, ctx: Any, call_next: Any) -> Any:
+        result = await call_next(ctx)
+        if ctx.method != "tools/call":
+            return result
+        state = ctx.lifespan_context
+        notice = getattr(state, "update_notice", None)
+        if not notice or state.notice_sent:
+            return result
+        text = f"Notice from the bil-mcp server, please tell the user: {notice}"
+        if isinstance(result, CallToolResult):
+            result.content.append(TextContent(type="text", text=text))
+        elif isinstance(result, dict) and isinstance(result.get("content"), list):
+            result["content"].append({"type": "text", "text": text})
+        else:
+            return result
+        state.notice_sent = True
+        return result
 
 
 # Shown in the instructions and tool descriptions, so the agent sees the real limit.
@@ -89,7 +126,11 @@ How to work well with these tools:
   get_dataset: the full record of one dataset (large; pass sections). count_by_field: a breakdown
   by any other field.
 - If unsure of a field name, read the bil://fields resource or call list_fields.
-- API matching is case-insensitive SUBSTRING ('sex=male' also matches 'Female'); use
+- species is matched by organism: 'mouse', 'macaque' (the genus), 'rodents', 'monkeys', 'NCBI:txid9606'
+  all work. The result's species_report says which BIL species strings were queried and which related
+  names were left out (e.g. 'spiny mouse'); tell the user. A term that is not an organism BIL holds
+  returns 0 without querying, plus the list of organisms BIL does hold.
+- Other filters match as case-insensitive SUBSTRING ('sex=male' also matches 'Female'); use
   match='exact' to check against full metadata. A dataset matches if ANY of its specimens matches;
   specimen_sex on each row shows the mix (e.g. 'male 8 / female 4').
 - BICAN datasets carry donor/tissue/section ids in Specimen.linkage; find_related_datasets
@@ -109,6 +150,7 @@ mcp = MCPServer(
 
 # Unknown argument names become tool errors instead of being silently dropped.
 mcp.middleware.append(LogToolCalls())             # outermost: sees every call, even rejected ones
+mcp.middleware.append(AttachUpdateNotice())
 mcp.middleware.append(RejectUnknownArguments(mcp))
 
 READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=True, idempotent_hint=True, destructive_hint=False)
@@ -129,6 +171,10 @@ def bil_tool(name: str | None = None):
 
 def _client(ctx: Context) -> BILClient:
     return ctx.request_context.lifespan_context.client
+
+
+def _tax(ctx: Context) -> Taxonomy:
+    return ctx.request_context.lifespan_context.taxonomy
 
 
 def _tool_error(e: Exception) -> ToolError:
@@ -181,7 +227,7 @@ async def search_datasets(
     Above that it returns counts only; next_steps says what to ask the user.
     """
     try:
-        return await search(_client(ctx), filters, text, text_mode, match, fetch_all)
+        return await search(_client(ctx), filters, text, text_mode, match, fetch_all, _tax(ctx))
     except Exception as e:
         raise _tool_error(e) from e
 
@@ -239,7 +285,7 @@ async def get_dataset_summaries(
         raise ToolError("Give bildids, or filters/text to page through a search.")
     try:
         return await dataset_summaries(_client(ctx), bildids, filters, text, text_mode, match, fetch_all,
-                                       limit, offset, detail)
+                                       limit, offset, detail, _tax(ctx))
     except Exception as e:
         raise _tool_error(e) from e
 
@@ -265,7 +311,8 @@ async def count_by_field_tool(
     if not (filters or text or bildids):
         raise ToolError("Give filters, text, or bildids to define the set to count.")
     try:
-        return await count_by_field(_client(ctx), field, filters, text, bildids, top, max_records, case_sensitive)
+        return await count_by_field(_client(ctx), field, filters, text, bildids, top, max_records, case_sensitive,
+                                    _tax(ctx))
     except Exception as e:
         raise _tool_error(e) from e
 

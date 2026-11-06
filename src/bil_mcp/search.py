@@ -8,6 +8,13 @@ concurrently and intersects the returned id sets. It also:
 * makes multi-word full text behave as AND (the API ORs words)
 * optionally verifies hits against full metadata (``match="exact"``),
   because API matching is substring-based (``sex=male`` matches "Female")
+* routes the ``species`` filter through ``taxonomy.Taxonomy``, which turns a
+  term ("mouse", "macaque", "insects") into exact queries for every BIL
+  species string under that taxon, and reports what it did
+
+BIL ``/query`` values are case-insensitive regular expressions. Every other
+filter value is sent through ``re.escape``, so it still matches as a plain
+substring and characters like ``( + [ .`` no longer break the query.
 
 Getting ids is cheap (one GET per filter value); full records cost POSTs
 (~0.3 s per 200). So up to ``Settings.stats_limit`` matches, ``search()``
@@ -27,8 +34,10 @@ import asyncio
 import difflib
 import json
 import math
+import re
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from functools import cache
 from typing import Literal, Union
 from urllib.parse import urlencode
 
@@ -50,6 +59,7 @@ from .models import (
     sex_mix,
     summarize,
 )
+from .taxonomy import Taxonomy
 
 FilterValue = Union[str, list[str]]
 MatchMode = Literal["contains", "exact"]
@@ -64,16 +74,27 @@ class SearchError(ValueError):
     pass
 
 
+@cache
+def default_taxonomy() -> Taxonomy:
+    """The shipped taxonomy, loaded once. The server passes its own (loaded in the lifespan)."""
+    return Taxonomy.load()
+
+
 def _query_url(s: Settings, endpoint: str, field: str, value: str) -> str:
     return f"{s.api_base}/query/{endpoint}?{urlencode({field: value})}"
 
 
-async def _ids_for_filter(client: BILClient, f: Field, values: list[str]) -> tuple[set[str], list[FilterStat]]:
-    """Union of ids over the values of ONE field (OR semantics)."""
-    results = await asyncio.gather(*(client.query(f.endpoint, f.field, v) for v in values))
+async def _ids_for_filter(client: BILClient, f: Field, values: list[str],
+                          escape: bool = True) -> tuple[set[str], list[FilterStat]]:
+    """Union of ids over the values of ONE field (OR semantics).
+
+    BIL treats the value as a regex, so it is escaped: it then matches as a
+    literal substring. (Full text is sent as is.)"""
+    sent = [re.escape(v) if escape else v for v in values]
+    results = await asyncio.gather(*(client.query(f.endpoint, f.field, v) for v in sent))
     stats = [
-        FilterStat(filter=f"{f.key}={v}", query_url=_query_url(client.s, f.endpoint, f.field, v), matches=len(ids))
-        for v, ids in zip(values, results)
+        FilterStat(filter=f"{f.key}={v}", query_url=_query_url(client.s, f.endpoint, f.field, q), matches=len(ids))
+        for v, q, ids in zip(values, sent, results)
     ]
     union: set[str] = set()
     for ids in results:
@@ -93,28 +114,74 @@ def _normalize_filters(filters: dict[str, FilterValue] | None) -> list[tuple[Fie
     return out
 
 
+async def _ids_for_species(client: BILClient, tax: Taxonomy, terms: list[str]) -> tuple[set[str], list[FilterStat], list[dict]]:
+    """Union of ids over species terms, each resolved through the taxonomy.
+
+    Returns the ids, one FilterStat per term, and the taxonomy report per term."""
+    f = BY_KEY["species"]
+
+    async def query(pattern: str) -> set[str]:
+        return set(await client.query(f.endpoint, f.field, pattern))  # client cache + retry
+
+    outs = await asyncio.gather(*(tax.search(t, query) for t in terms))
+    stats, reports, union = [], [], set()
+    for term, out in zip(terms, outs):
+        rep = out["report"]
+        qs = rep.get("queries", [])
+        if not rep["resolved"]:
+            url = "not sent: the term is not an organism BIL holds (see species_report)"
+        elif len(qs) == 1:
+            url = f"{client.s.api_base}{qs[0]['sent_to_bil']}"
+        else:
+            url = f"{len(qs)} queries, one per BIL species string (see species_report)"
+        stats.append(FilterStat(filter=f"species={term}", query_url=url, matches=len(out["ids"])))
+        reports.append(rep)
+        union.update(out["ids"])
+    return union, stats, reports
+
+
+@dataclass
+class Matches:
+    ids: list[str]                             # sorted for stable paging
+    stats: list[FilterStat]
+    norm: list[tuple[Field, list[str]]]
+    species_report: list[dict] = field(default_factory=list)   # one per species term
+
+
 async def matching_ids(
     client: BILClient,
     filters: dict[str, FilterValue] | None = None,
     text: str | None = None,
     text_mode: Literal["all", "any"] = "all",
-) -> tuple[list[str], list[FilterStat], list[tuple[Field, list[str]]]]:
-    """Ids matching every filter (and the text), sorted for stable paging."""
+    tax: Taxonomy | None = None,
+) -> Matches:
+    """Ids matching every filter (and the text).
+
+    If no species term resolves to an organism BIL holds, nothing is sent to
+    BIL: the result is empty, with the taxonomy report saying why."""
     norm = _normalize_filters(filters)
     if not norm and not (text and text.strip()):
         raise SearchError("Give at least one filter or some text.")
+    tax = tax or default_taxonomy()
 
-    tasks = [_ids_for_filter(client, f, vals) for f, vals in norm]
-    text_terms: list[str] = []
+    species_groups = [vals for f, vals in norm if f.key == "species"]
+    if any(not any(tax.resolve(t).organisms for t in vals) for vals in species_groups):
+        # A species filter that matches no organism BIL holds empties the search: send nothing.
+        outs = [await _ids_for_species(client, tax, vals) for vals in species_groups]  # these send no queries
+        return Matches([], [st for o in outs for st in o[1]], norm, [r for o in outs for r in o[2]])
+
+    tasks = [_ids_for_species(client, tax, vals) if f.key == "species" else _ids_for_filter(client, f, vals)
+             for f, vals in norm]
     if text and text.strip():
         text_terms = text.split() if text_mode == "all" else [text.strip()]
-        tasks += [_ids_for_filter(client, _FULLTEXT, [t]) for t in text_terms]
+        tasks += [_ids_for_filter(client, _FULLTEXT, [t], escape=False) for t in text_terms]
 
     results = await asyncio.gather(*tasks)
-    stats = [st for _, sts in results for st in sts]
-    sets = [ids for ids, _ in results]
+    stats = [st for r in results for st in r[1]]
+    reports = [rep for r in results if len(r) == 3 for rep in r[2]]
+    sets = [r[0] for r in results]
     hits = set.intersection(*sets) if sets else set()
-    return sorted(hits), stats, norm
+    return Matches(sorted(hits), stats, norm, reports)
 
 
 # A pseudo-field so full text goes through the same code path.
@@ -123,6 +190,8 @@ _FULLTEXT = Field("text", "*", "fulltext", "text", "Full-text search")
 
 def _record_matches_exact(rec: dict, norm: list[tuple[Field, list[str]]]) -> bool:
     for f, vals in norm:
+        if f.key == "species":
+            continue  # already exact: the taxonomy queries each BIL species string anchored
         have = {v.strip().lower() for v in values_in_record(rec, f)}
         if not have.intersection(v.lower() for v in vals):
             return False
@@ -147,6 +216,7 @@ class ResolvedSet:
     records: dict[str, dict] | None   # every matching record, or None if not fetched
     verified: bool
     notes: list[str]
+    species_report: list[dict] = field(default_factory=list)
 
 
 async def resolve_set(
@@ -156,16 +226,18 @@ async def resolve_set(
     text_mode: Literal["all", "any"] = "all",
     match: MatchMode = "contains",
     fetch_all: bool = False,
+    tax: Taxonomy | None = None,
 ) -> ResolvedSet:
     """Ids for a search, plus every record when there are at most `stats_limit`
     matches (or `fetch_all`). Records land in the client cache, so the next
     search over the same datasets needs no POSTs."""
-    ids, stats, norm = await matching_ids(client, filters, text, text_mode)
-    notes: list[str] = []
+    m = await matching_ids(client, filters, text, text_mode, tax)
+    ids, stats, norm, sp = m.ids, m.stats, m.norm, m.species_report
+    notes: list[str] = [r["message"] for r in sp if not r["resolved"]]
     if len(ids) > client.s.stats_limit and not fetch_all:
         if match == "exact" and norm:
             notes.append("match='exact' was not applied yet: it needs the records, which were not fetched.")
-        return ResolvedSet(ids, stats, norm, None, False, notes)
+        return ResolvedSet(ids, stats, norm, None, False, notes, sp)
     recs = await client.retrieve_many(ids)
     if len(recs) < len(ids):
         notes.append(f"{len(ids) - len(recs)} ids matched but could not be retrieved; they are left out.")
@@ -174,7 +246,7 @@ async def resolve_set(
     if match == "exact" and norm:
         ids = [i for i in ids if _record_matches_exact(recs[i], norm)]
         verified = True
-    return ResolvedSet(ids, stats, norm, recs, verified, notes)
+    return ResolvedSet(ids, stats, norm, recs, verified, notes, sp)
 
 
 def _newest_first(ids: list[str], recs: dict[str, dict]) -> list[str]:
@@ -195,13 +267,18 @@ async def search(
     text_mode: Literal["all", "any"] = "all",
     match: MatchMode = "contains",
     fetch_all: bool = False,
+    tax: Taxonomy | None = None,
 ) -> SearchResult:
-    rs = await resolve_set(client, filters, text, text_mode, match, fetch_all)
+    rs = await resolve_set(client, filters, text, text_mode, match, fetch_all, tax)
     s = client.s
     total = len(rs.ids)
     notes = list(rs.notes)
-    if match == "contains" and any(f.key in ("sex", "species") for f, _ in rs.norm):
+    if match == "contains" and any(f.key == "sex" for f, _ in rs.norm):
         notes.append("Substring matching is on: e.g. sex=Male also matches Female. Use match='exact' to be strict.")
+    if any(r["resolved"] for r in rs.species_report):
+        notes.append("species was matched by organism, not by substring: species_report lists each BIL species "
+                     "string queried, related names left out (e.g. 'spiny mouse' for 'mouse'), and data notes. "
+                     "Pass these on to the user.")
     if text and text_mode == "all" and len(text.split()) > 1:
         notes.append("Multi-word text was treated as AND (one fulltext query per word).")
     if text and text_mode == "any" and len(text.split()) > 1:
@@ -210,7 +287,7 @@ async def search(
     notes += _zero_hit_hints(rs.stats)
     ttl_min = round(s.cache_ttl_s / 60)
     base = dict(total=total, match_mode=match, verified=rs.verified, filters=rs.stats,
-                viewer_url_template=f"{s.viewer_base}?bildid={{bildid}}")
+                species_report=rs.species_report, viewer_url_template=f"{s.viewer_base}?bildid={{bildid}}")
 
     if rs.records is None:
         est = estimate_fetch_seconds(total, s)
@@ -228,7 +305,7 @@ async def search(
             ] + ([
                 "match='exact' (e.g. to drop Female specimens from sex=Male) also needs the records, so on its "
                 "own it will not make this set smaller or bring it under the limit. Use it together with (a) or (b)."
-            ] if any(f.key in ("sex", "species") for f, _ in rs.norm) else []),
+            ] if any(f.key == "sex" for f, _ in rs.norm) else []),
         )
 
     recs = rs.records
@@ -271,6 +348,7 @@ async def dataset_summaries(
     limit: int = ROWS_SHOWN,
     offset: int = 0,
     detail: Literal["full", "brief"] = "full",
+    tax: Taxonomy | None = None,
 ) -> SummaryPage:
     """Summaries for given bildids (all of them, in the order given), or one page
     of a search's matches, newest first."""
@@ -283,7 +361,7 @@ async def dataset_summaries(
         found = [make(i, recs[i]) for i in ids if i in recs]
         return SummaryPage(total=len(ids), offset=0, returned=len(found), order="as given", datasets=found,
                            not_found=[i for i in ids if i not in recs])
-    rs = await resolve_set(client, filters, text, text_mode, match, fetch_all)
+    rs = await resolve_set(client, filters, text, text_mode, match, fetch_all, tax)
     if rs.records is None:
         raise SearchError(
             f"{len(rs.ids)} matches is more than the automatic limit of {client.s.stats_limit}. Narrow the "
@@ -355,6 +433,7 @@ async def count_by_field(
     top: int = 25,
     max_records: int | None = None,
     case_sensitive: bool = False,
+    tax: Taxonomy | None = None,
 ) -> FieldCounts:
     """Count values of `field` over a set of datasets (given or searched).
 
@@ -367,7 +446,7 @@ async def count_by_field(
     if bildids:
         ids = list(dict.fromkeys(bildids))
     else:
-        ids, _, _ = await matching_ids(client, filters, text)
+        ids = (await matching_ids(client, filters, text, tax=tax)).ids
     considered = ids[: max_records or client.s.stats_limit]
     recs = await client.retrieve_many(considered)
     counter, spellings, missing = _tally(recs, considered, f, case_sensitive)
@@ -403,10 +482,10 @@ async def related_datasets(
     wanted = {l.lower() for l in levels} if levels else None
     chosen = [l for l in links if wanted is None or str(l.get("relationship", "")).lower() in wanted]
     xf = BY_KEY["linkage.xid"]
-    results = await asyncio.gather(*(client.query(xf.endpoint, xf.field, l["xid"]) for l in chosen))
+    results = await asyncio.gather(*(client.query(xf.endpoint, xf.field, re.escape(l["xid"])) for l in chosen))
     groups = []
     for link, ids in zip(chosen, results):
-        # xid matching is substring-based too, but NHash ids are fixed-format
+        # xid matching is substring-based too (the escaped value is a literal regex), but NHash ids are fixed-format
         # (e.g. DO-OHTO1697), so accidental partial matches are unlikely.
         others = sorted(i for i in ids if i != bildid)
         groups.append(

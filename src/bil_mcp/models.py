@@ -74,6 +74,9 @@ class SearchResult(BaseModel):
     records_fetched: bool = Field(description="False when total is above the automatic limit: then there are "
                                               "no breakdowns or rows; see next_steps")
     filters: list[FilterStat] = Field(description="Per filter: how many datasets it matches on its own")
+    species_report: list[dict[str, Any]] = Field(
+        default=[], description="One per species term: how it was interpreted (organisms, BIL strings queried, "
+                                "related names not included, data notes), or why BIL was not queried")
     breakdowns: list[Breakdown] = []
     specimen_sex_mix: dict[str, int] = Field(
         default={}, description="Datasets by specimen sex: male only / female only / mixed / unknown or not given")

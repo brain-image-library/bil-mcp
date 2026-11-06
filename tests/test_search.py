@@ -163,6 +163,55 @@ async def test_related_without_linkage(client):
 
 
 async def test_zero_hit_filter_gets_a_hint(client):
-    r = await search(client, {"species": "humanh", "technique": "MERFISH"})
+    r = await search(client, {"technique": "MERFISHH"})
     assert r.total == 0
-    assert any("'species=humanh' matched 0" in n and "Did you mean: Human" in n for n in r.notes)
+    assert any("'technique=MERFISHH' matched 0" in n for n in r.notes)
+
+
+# ---------- species through the taxonomy ----------
+async def test_species_goes_through_taxonomy(client, fake):
+    r = await search(client, {"species": "Mouse"})
+    assert r.total == 5  # mouse + Mouse, every fixture record but the human one
+    rep, = r.species_report
+    assert rep["resolved"] and rep["datasets"] == 5
+    sent = [c for c in fake.calls if "species=" in c]
+    # One anchored (^...$) query per BIL mouse string, plus one for 'spiny mouse' to report it as not included.
+    assert len(sent) == 4 and all("%5E" in c for c in sent)
+    assert [n["bil_string"] for n in rep["not_included"]] == []  # no spiny mouse in the fixtures
+    assert any("matched by organism" in n for n in r.notes)
+
+
+async def test_species_or_list_unions_terms(client):
+    r = await search(client, {"species": ["human", "mouse"]})
+    assert r.total == 6 and [rep["term"] for rep in r.species_report] == ["human", "mouse"]
+
+
+async def test_unknown_species_returns_nothing_and_queries_nothing(client, fake):
+    r = await search(client, {"species": "axolotl", "technique": "MERFISH"})
+    assert r.total == 0 and fake.calls == []
+    rep, = r.species_report
+    assert rep["resolved"] is False and rep["available"]
+    assert any("BIL was not queried" in n for n in r.notes)
+
+
+async def test_species_exact_mode_keeps_synonym_strings(client):
+    # 'human' resolves to Homo sapiens; exact mode must not re-filter on the literal word.
+    r = await search(client, {"species": "Homo sapiens"}, match="exact")
+    assert r.total == 1 and r.datasets[0].bildid == "ace-can-ill"
+
+
+async def test_count_by_field_uses_taxonomy(client):
+    f = await count_by_field(client, "technique", {"species": "rodents"})
+    assert f.datasets_total == 5
+
+
+# ---------- regex escaping ----------
+async def test_filter_values_are_regex_escaped(client, fake):
+    r = await search(client, {"technique": "MERFISH (x"})  # unescaped, '(' is an invalid regex: HTTP 500
+    assert r.total == 0
+    assert any("technique=MERFISH%5C+%5C%28x" in c for c in fake.calls)
+    assert r.filters[0].filter == "technique=MERFISH (x"  # the label keeps what the user typed
+
+
+async def test_escaping_keeps_substring_behaviour(client):
+    assert (await search(client, {"technique": "merf"})).total == 5

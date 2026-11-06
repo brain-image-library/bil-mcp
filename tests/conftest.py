@@ -1,7 +1,8 @@
 """Offline test harness: a fake BIL API serving REAL recorded records.
 
 `FakeBIL` is an httpx MockTransport. It answers /query and /retrieve the way
-the live API does (one variable per query, case-insensitive substring match,
+the live API does (one variable per query, the value a case-insensitive regex
+searched anywhere in the field, an invalid regex an HTTP 500,
 "no entry found" as HTTP 404 + JSON success="false", string booleans), computed over
 tests/fixtures/records.json. The live-API tests in test_live.py check that
 those assumptions still hold.
@@ -10,6 +11,7 @@ those assumptions still hold.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import httpx
@@ -59,9 +61,13 @@ class FakeBIL:
                     return httpx.Response(404, text="<h1>Not Found</h1>")
                 if not fields:
                     return _fail(endpoint, "Not a valid variable for the endpoint")
+                try:
+                    pattern = re.compile(value, re.IGNORECASE)
+                except re.error:
+                    return httpx.Response(500, text="Internal Server Error")
                 ids = [
                     i for i, r in self.records.items()
-                    if any(value.lower() in v.lower() for v in values_in_record(r, fields[0]))
+                    if any(pattern.search(v) for v in values_in_record(r, fields[0]))
                 ]
             if not ids:
                 return _fail(endpoint, "GET failure, no entry found")

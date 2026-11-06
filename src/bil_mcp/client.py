@@ -7,7 +7,9 @@ without starting a server.
 API facts this client encodes (checked against the live API, Oct 2026):
 
 * ``GET /query/<endpoint>?<field>=<value>`` -> ``{"success", "bildids": [...]}``.
-  Only ONE variable per call. Matching is case-insensitive substring.
+  Only ONE variable per call. The value is a case-insensitive REGULAR
+  EXPRESSION, searched anywhere in the field (so a plain word acts as a
+  substring). An invalid pattern returns HTTP 500. Callers escape values.
 * A query with no hits returns HTTP 404 with JSON ``success: "false"`` and
   the message "GET failure, no entry found". That is an empty result, not
   an error. Other logical errors also come back as 404/405 + JSON.
@@ -91,6 +93,11 @@ class BILClient:
         )
         self._cache = TTLCache(self.s.cache_ttl_s, self.s.cache_max_entries)
         self._sem = asyncio.Semaphore(self.s.max_concurrency)
+
+    @property
+    def http(self) -> httpx.AsyncClient:
+        """The underlying httpx client, for non-BIL calls (e.g. the PyPI version check)."""
+        return self._http
 
     async def aclose(self) -> None:
         await self._http.aclose()

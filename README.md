@@ -16,6 +16,7 @@ The server turns requests like that into calls against the public
 | One field per query | Multi-filter AND, OR lists, AND-ed full-text words |
 | Returns only ids | Compact summaries, paging, and value counts ("how many of these are mouse / human / marmoset?") |
 | Substring match (`sex=male` also matches `Female`) | `match="exact"` checks each hit against its full record |
+| A species search for `mouse` also matches `spiny mouse`; `macaque` misses `Macaca mulatta` | `species` is matched by organism (NCBI Taxonomy): each BIL species string under the term is queried exactly, and `species_report` lists what was included and what was left out |
 | Search ignores upper/lower case, but the stored values are spelled inconsistently (`Mouse` in 384 spatial-transcriptomics datasets, `mouse` in 48), so counting them naively splits one species in two | Value counts merge spellings that differ only in case (`Mouse` + `mouse` = 432) |
 | Finding other datasets from the same BICAN donor, tissue or section takes several manual steps: retrieve the dataset, read the specimen ids in its `Specimen.linkage` field, then query each id | `find_related_datasets` does all of that in one call |
 

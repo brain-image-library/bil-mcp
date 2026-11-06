@@ -52,6 +52,26 @@ async def test_search_tool_structured(connect):
         assert r.structured_content["breakdowns"][0]["filter_key"] == "species"
 
 
+async def test_update_notice_on_first_tool_result_only(fake, monkeypatch):
+    async def notice(_client):
+        return "bil-mcp 0.1.0 is installed; 0.2.0 is available."
+    monkeypatch.setattr(srv, "update_notice", notice)
+    monkeypatch.setattr(srv, "make_client", lambda: BILClient(Settings(max_retries=0),
+                                                               transport=httpx.MockTransport(fake)))
+    async with Client(srv.mcp) as mcp_client:
+        first = await mcp_client.call_tool("list_fields", {})
+        second = await mcp_client.call_tool("search_datasets", {"filters": {"species": "Human"}})
+    assert "0.2.0 is available" in first.content[-1].text
+    assert not any("0.2.0" in getattr(c, "text", "") for c in second.content)
+    assert second.structured_content["total"] == 1
+
+
+async def test_no_notice_when_up_to_date(connect):
+    async with connect() as mcp_client:
+        r = await mcp_client.call_tool("list_fields", {})
+        assert not any("Notice from the bil-mcp server" in getattr(c, "text", "") for c in r.content)
+
+
 async def test_bad_field_is_a_tool_error_not_a_crash(connect):
     async with connect() as mcp_client:
         r = await mcp_client.call_tool("search_datasets", {"filters": {"spieces": "Human"}})

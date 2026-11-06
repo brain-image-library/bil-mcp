@@ -1,0 +1,66 @@
+# species_map.yaml — CURATED BY HAND. Edit this file; never edit ncbi_taxonomy.yaml.
+#
+# What lives here (decisions about BIL that no ontology can make):
+#   organisms        every species string BIL uses -> the NCBI taxon ID we decided it means,
+#                    plus notes on BIL data quirks for that organism
+#   aliases          extra words users type that NCBI does not list (plurals, short forms)
+#   everyday_groups  common words that are not one branch of the tree ("fish", "monkeys"),
+#                    defined by including/excluding NCBI taxa
+#
+# Names, synonyms and lineage are NOT written here. scripts/build_taxonomy.py reads the taxon IDs
+# below, fetches everything else from NCBI, and writes ncbi_taxonomy.yaml.
+# bil_strings must be lowercase and exactly as BIL /stats reports them.
+
+organisms:
+  9606:    {bil_strings: [human, homo sapiens]}
+  10090:   {bil_strings: [mouse, mus musculus, mus musculus (house mouse)]}
+  10116:   {bil_strings: [rat]}
+  60744:   {bil_strings: [spiny mouse]}
+  9544:
+    bil_strings: [macaca mulatta, rhesus macaque, m. mulatta (rhesus macaque), macaque]
+    notes:
+      - bil_string: macaque
+        note: >-
+          22 datasets (project "Multimodal analysis of primate infragranular pyramidal neurons and
+          their modulation") are labelled only "macaque". Their taxon ID is NCBI:txid9544 and nothing
+          contradicts it, so they are counted as Macaca mulatta. Decided 2026-11-06.
+  9545:    {bil_strings: [macaca nemestrina, pig-tailed macaque]}
+  9541:    {bil_strings: [crab-eating macaque]}
+  9483:    {bil_strings: [marmoset, common marmoset, callithrix jacchus (common marmoset)]}
+  9521:    {bil_strings: [saimiri sciureus]}
+  7955:    {bil_strings: [zebrafish]}
+  7227:    {bil_strings: [fruit fly]}
+  2015173: {bil_strings: [clonal raider ant, ooceraea biroi]}
+  327109:  {bil_strings: [spider]}
+  1774208: {bil_strings: [ciona robusta]}
+
+# term -> NCBI scientific name of the taxon it should mean. Checked before NCBI names, so it also
+# settles words that would otherwise be ambiguous.
+aliases:
+  macaque: Macaca            # the genus; the BIL string "macaque" is handled under organisms, above
+  macaques: Macaca
+  mice: Mus musculus
+  rhesus: Macaca mulatta
+  cyno: Macaca fascicularis
+  humans: Homo sapiens
+  rats: Rattus norvegicus
+  insect: Insecta            # NCBI lists only "insects"
+
+# Everyday words that are not a single NCBI taxon. A holding belongs to the group when its lineage
+# contains one of `include` and none of `exclude` (NCBI scientific names).
+everyday_groups:
+  monkeys:
+    definition: Primates except apes and humans (monkeys are not one branch of the NCBI tree).
+    terms: [monkey, monkeys]
+    include: [Simiiformes]
+    exclude: [Hominoidea]
+  fish:
+    definition: Vertebrates that are not tetrapods (fish are not one branch of the NCBI tree).
+    terms: [fish, fishes]
+    include: [Vertebrata]
+    exclude: [Tetrapoda]
+  invertebrates:
+    definition: Animals that are not vertebrates. Includes Ciona, a chordate without a backbone.
+    terms: [invertebrate, invertebrates]
+    include: [Metazoa]
+    exclude: [Vertebrata]
