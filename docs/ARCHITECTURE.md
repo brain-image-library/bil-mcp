@@ -33,7 +33,7 @@ and tested without a server.
 | D1 | Official `mcp` Python SDK (v2, `MCPServer`) | Tracks the spec, few dependencies, matches the official docs; lets you drop down to the low-level `Server` | Standalone `fastmcp` 2.x: more features, more abstraction |
 | D2 | stdio transport by default | Local, per-user, no auth or ports; it's what desktop clients launch | Streamable HTTP is available behind a flag for shared or remote use |
 | D3 | Live API + in-memory TTL cache | Always fresh, no index to rebuild; BIL is fast (~0.2 s/query, ~0.5 s per 200-record POST) | A local SQLite index: instant value counts, but goes stale and adds code |
-| D4 | Field-level filters; IR seam in `search.search()` | Maps 1:1 to the verified API, so nothing is invented | Intent-level IR now: would mean guessing at a schema still being designed |
+| D4 | Field-level filters: the agent turns the question into filters, the server turns filter values into correct BIL queries (e.g. `species` via `taxonomy.py`) | The agent understands the person; the server understands BIL (its spellings, traps like "spiny mouse", data quirks), tested once and identical for every agent | Leaving BIL spellings to the agent: each agent would discover them with extra calls, and differently each time |
 | D5 | Links + one-level file listing, no downloads | BIL datasets are often terabytes; an agent shouldn't start those transfers | Download tool with size caps |
 | D6 | Pydantic return types | SDK publishes an output schema and returns structured content; forces compact responses | Raw dicts (still used where the shape is BIL's own, e.g. `get_dataset`) |
 | D7 | Errors become `ToolError` | The model gets a readable message (`is_error: true`) it can recover from, and the session stays up | Letting exceptions escape |
@@ -88,8 +88,6 @@ every offline test passed. The live test caught it.
 
 ## Where to extend
 
-* **IR / natural-language search**: write `ir_to_filters(ir) -> (filters, text)` and add a tool
-  that calls `search()`.
 * **Cross-archive (NeMO)**: a sibling `nemo_client.py`, plus a tool that joins on `linkage.xid`
   (NHash).
 * **Local index**: implement `retrieve_many` from SQLite behind the same interface. Nothing above

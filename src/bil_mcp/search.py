@@ -23,9 +23,10 @@ response stays small however many records were read. Above the limit it
 returns counts only, and the agent asks the user whether to narrow the
 search or fetch everything (``fetch_all=True``).
 
-This is the seam where a future intent-level IR (intermediate
-representation) translator plugs in: it would produce the same
-``filters``/``text`` inputs that ``search()`` already accepts.
+Division of work: the agent turns the user's question into filters
+("mouse spatial transcriptomics from BICAN" -> species, generalmodality,
+consortium); this server turns filter values into correct BIL queries
+("mouse" -> the three BIL strings for Mus musculus).
 """
 
 from __future__ import annotations
