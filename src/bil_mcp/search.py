@@ -6,8 +6,9 @@ concurrently and intersects the returned id sets. It also:
 
 * supports OR within one field: ``{"species": ["Human", "Macaque"]}``
 * makes multi-word full text behave as AND (the API ORs words)
-* optionally verifies hits against full metadata (``match="exact"``),
-  because API matching is substring-based (``sex=male`` matches "Female")
+* checks ``sex`` against the full records, because BIL matching is
+  substring-based (``sex=male`` would also match "Female"); every other
+  filter matches as a substring, which is what people want there
 * routes the ``species`` filter through ``taxonomy.Taxonomy``, which turns a
   term ("mouse", "macaque", "insects") into exact queries for every BIL
   species string under that taxon, and reports what it did
@@ -47,6 +48,7 @@ from .config import Settings
 from .fields import BY_KEY, Field, resolve, values_in_record
 from .models import (
     Breakdown,
+    SpeciesCount,
     DatasetSummary,
     ValueCount,
     FieldCounts,
@@ -63,7 +65,10 @@ from .models import (
 from .taxonomy import Taxonomy
 
 FilterValue = Union[str, list[str]]
-MatchMode = Literal["contains", "exact"]
+# Filters the server checks for an exact value against the full records (case and surrounding spaces
+# ignored), because substring matching is always wrong for them: "male" is inside "Female".
+# Every other filter matches as a substring ("BICAN" finds "Brain Initiative Cell Atlas Network (BICAN)").
+EXACT_FIELDS = ("sex",)
 
 ROWS_SHOWN = 20        # brief rows in a search result: all matches if total <= 20, else the 20 newest
 BREAKDOWN_TOP = 5      # values listed per breakdown field
@@ -189,10 +194,13 @@ async def matching_ids(
 _FULLTEXT = Field("text", "*", "fulltext", "text", "Full-text search")
 
 
-def _record_matches_exact(rec: dict, norm: list[tuple[Field, list[str]]]) -> bool:
-    for f, vals in norm:
-        if f.key == "species":
-            continue  # already exact: the taxonomy queries each BIL species string anchored
+def _exact_filters(norm: list[tuple[Field, list[str]]]) -> list[tuple[Field, list[str]]]:
+    return [(f, vals) for f, vals in norm if f.key in EXACT_FIELDS]
+
+
+def _record_matches_exact(rec: dict, exact: list[tuple[Field, list[str]]]) -> bool:
+    """True if, for every EXACT_FIELDS filter, a specimen/field value equals one of the filter values."""
+    for f, vals in exact:
         have = {v.strip().lower() for v in values_in_record(rec, f)}
         if not have.intersection(v.lower() for v in vals):
             return False
@@ -215,7 +223,7 @@ class ResolvedSet:
     stats: list[FilterStat]
     norm: list[tuple[Field, list[str]]]
     records: dict[str, dict] | None   # every matching record, or None if not fetched
-    verified: bool
+    verified: bool                    # EXACT_FIELDS filters (sex) were checked against the records
     notes: list[str]
     species_report: list[dict] = field(default_factory=list)
 
@@ -225,7 +233,6 @@ async def resolve_set(
     filters: dict[str, FilterValue] | None = None,
     text: str | None = None,
     text_mode: Literal["all", "any"] = "all",
-    match: MatchMode = "contains",
     fetch_all: bool = False,
     tax: Taxonomy | None = None,
 ) -> ResolvedSet:
@@ -235,19 +242,35 @@ async def resolve_set(
     m = await matching_ids(client, filters, text, text_mode, tax)
     ids, stats, norm, sp = m.ids, m.stats, m.norm, m.species_report
     notes: list[str] = [r["message"] for r in sp if not r["resolved"]]
+    exact = _exact_filters(norm)
     if len(ids) > client.s.stats_limit and not fetch_all:
-        if match == "exact" and norm:
-            notes.append("match='exact' was not applied yet: it needs the records, which were not fetched.")
+        if exact:
+            notes.append(_unchecked_note(exact))
         return ResolvedSet(ids, stats, norm, None, False, notes, sp)
     recs = await client.retrieve_many(ids)
     if len(recs) < len(ids):
         notes.append(f"{len(ids) - len(recs)} ids matched but could not be retrieved; they are left out.")
         ids = [i for i in ids if i in recs]
-    verified = False
-    if match == "exact" and norm:
-        ids = [i for i in ids if _record_matches_exact(recs[i], norm)]
-        verified = True
-    return ResolvedSet(ids, stats, norm, recs, verified, notes, sp)
+    if exact:
+        before = len(ids)
+        ids = [i for i in ids if _record_matches_exact(recs[i], exact)]
+        if before and not ids:
+            notes.append(_emptied_note(exact, before))
+    return ResolvedSet(ids, stats, norm, recs, bool(exact), notes, sp)
+
+
+def _filter_text(exact: list[tuple[Field, list[str]]]) -> str:
+    return " and ".join(f"{f.key}={'/'.join(vals)}" for f, vals in exact)
+
+
+def _unchecked_note(exact: list[tuple[Field, list[str]]]) -> str:
+    return (f"{_filter_text(exact)} is not checked yet: it is matched exactly against the records, which were not "
+            f"read. Until then the total also counts substring matches (sex=Male also counts Female specimens).")
+
+
+def _emptied_note(exact: list[tuple[Field, list[str]]], before: int) -> str:
+    return (f"{before} datasets match all filters as substrings, but none has a specimen with exactly "
+            f"{_filter_text(exact)}. That is what emptied the search.")
 
 
 def _newest_first(ids: list[str], recs: dict[str, dict]) -> list[str]:
@@ -255,10 +278,11 @@ def _newest_first(ids: list[str], recs: dict[str, dict]) -> list[str]:
     return sorted(ids, key=lambda i: bildate(recs[i]), reverse=True)
 
 
-def _breakdown(recs: dict[str, dict], ids: list[str], f: Field, top: int = BREAKDOWN_TOP) -> Breakdown:
-    counter, spellings, missing = _tally(recs, ids, f)
-    return Breakdown(filter_key=f.key, distinct_values=len(counter), missing_value=missing,
-                     top=_buckets(counter, spellings, top))
+def _breakdown(recs: dict[str, dict], ids: list[str], f: Field, tax: Taxonomy,
+               top: int = BREAKDOWN_TOP) -> Breakdown:
+    t = _tally(recs, ids, f, tax=tax)
+    return Breakdown(filter_key=f.key, distinct_values=len(t.counter), missing_value=t.missing,
+                     top=_buckets(t, top, tax))
 
 
 async def search(
@@ -266,16 +290,13 @@ async def search(
     filters: dict[str, FilterValue] | None = None,
     text: str | None = None,
     text_mode: Literal["all", "any"] = "all",
-    match: MatchMode = "contains",
     fetch_all: bool = False,
     tax: Taxonomy | None = None,
 ) -> SearchResult:
-    rs = await resolve_set(client, filters, text, text_mode, match, fetch_all, tax)
+    rs = await resolve_set(client, filters, text, text_mode, fetch_all, tax)
     s = client.s
     total = len(rs.ids)
     notes = list(rs.notes)
-    if match == "contains" and any(f.key == "sex" for f, _ in rs.norm):
-        notes.append("Substring matching is on: e.g. sex=Male also matches Female. Use match='exact' to be strict.")
     if any(r["resolved"] for r in rs.species_report):
         notes.append("species was matched by organism, not by substring: species_report lists each BIL species "
                      "string queried, related names left out (e.g. 'spiny mouse' for 'mouse'), and data notes. "
@@ -287,7 +308,7 @@ async def search(
                      "BIL matches datasets containing ANY of the words.")
     notes += _zero_hit_hints(rs.stats)
     ttl_min = round(s.cache_ttl_s / 60)
-    base = dict(total=total, match_mode=match, verified=rs.verified, filters=rs.stats,
+    base = dict(total=total, verified=rs.verified, filters=rs.stats,
                 species_report=rs.species_report, viewer_url_template=f"{s.viewer_base}?bildid={{bildid}}")
 
     if rs.records is None:
@@ -304,9 +325,10 @@ async def search(
                 f"then stay cached in this server for {ttl_min} minutes, so narrowing the search afterwards is "
                 "fast: each added filter needs only a quick id lookup, and no records are downloaded again.",
             ] + ([
-                "match='exact' (e.g. to drop Female specimens from sex=Male) also needs the records, so on its "
-                "own it will not make this set smaller or bring it under the limit. Use it together with (a) or (b)."
-            ] if any(f.key == "sex" for f, _ in rs.norm) else []),
+                "The sex filter is matched exactly only once the records are read, so this total still includes "
+                "datasets that match only as a substring (sex=Male also counts Female). Tell the user the number "
+                "is an upper bound; (b) gives the exact count."
+            ] if _exact_filters(rs.norm) else []),
         )
 
     recs = rs.records
@@ -316,7 +338,7 @@ async def search(
             "(count_by_field on a broader search). Don't silently retry with guessed values."])
 
     mix = Counter(sex_mix(recs[i]) for i in rs.ids)
-    breakdowns = [_breakdown(recs, rs.ids, BY_KEY[k]) for k in BREAKDOWN_FIELDS]
+    breakdowns = [_breakdown(recs, rs.ids, BY_KEY[k], tax or default_taxonomy()) for k in BREAKDOWN_FIELDS]
     rows = [brief(i, recs[i]) for i in _newest_first(rs.ids, recs)[:ROWS_SHOWN]]
 
     next_steps = []
@@ -324,12 +346,12 @@ async def search(
         next_steps.append(
             f"datasets lists the {ROWS_SHOWN} newest of {total}. Offer the user: narrow the search (the "
             "breakdowns show how the matches split), or list more with get_dataset_summaries using the same "
-            f"filters/text/match plus offset={ROWS_SHOWN} and detail='brief'.")
+            f"filters/text plus offset={ROWS_SHOWN} and detail='brief'.")
     example = next((b for b in breakdowns if b.filter_key == "contributorname" and b.top), None)
     example_txt = (f", e.g. {json.dumps({example.filter_key: example.top[0].value})}" if example else "")
     next_steps.append(
         f"To look inside one group of a breakdown, add {{filter_key: value}} to the filters{example_txt}. "
-        f"The records are cached for {ttl_min} minutes, so this is fast. For sex, also pass match='exact'.")
+        f"The records are cached for {ttl_min} minutes, so this is fast.")
     next_steps.append("For full summaries of specific datasets, call get_dataset_summaries with their bildids.")
     return SearchResult(
         **base, records_fetched=True, breakdowns=breakdowns,
@@ -344,7 +366,6 @@ async def dataset_summaries(
     filters: dict[str, FilterValue] | None = None,
     text: str | None = None,
     text_mode: Literal["all", "any"] = "all",
-    match: MatchMode = "contains",
     fetch_all: bool = False,
     limit: int = ROWS_SHOWN,
     offset: int = 0,
@@ -362,7 +383,7 @@ async def dataset_summaries(
         found = [make(i, recs[i]) for i in ids if i in recs]
         return SummaryPage(total=len(ids), offset=0, returned=len(found), order="as given", datasets=found,
                            not_found=[i for i in ids if i not in recs])
-    rs = await resolve_set(client, filters, text, text_mode, match, fetch_all, tax)
+    rs = await resolve_set(client, filters, text, text_mode, fetch_all, tax)
     if rs.records is None:
         raise SearchError(
             f"{len(rs.ids)} matches is more than the automatic limit of {client.s.stats_limit}. Narrow the "
@@ -399,30 +420,69 @@ def _zero_hit_hints(stats: list[FilterStat]) -> list[str]:
     return hints
 
 
-def _tally(recs: dict[str, dict], ids: list[str], f: Field, case_sensitive: bool = False):
-    """Datasets per value of `f`. Values are grouped case-insensitively by default,
-    keeping every spelling seen ("Mouse", "mouse")."""
-    counter: Counter[str] = Counter()
-    spellings: dict[str, Counter[str]] = {}
-    missing = 0
+@dataclass
+class _Tally:
+    counter: Counter[str]               # group key -> datasets
+    raw: dict[str, Counter[str]]        # group key -> exact stored value -> datasets
+    spelling: dict[str, Counter[str]]   # group key -> spelling (case ignored) -> datasets
+    missing: int
+
+
+def _tally(recs: dict[str, dict], ids: list[str], f: Field, case_sensitive: bool = False,
+           tax: Taxonomy | None = None) -> _Tally:
+    """Datasets per value of `f`, each dataset counted once per group.
+
+    Values are grouped case-insensitively by default ("Mouse", "mouse"). For
+    `species`, values are grouped by organism through species_map.yaml
+    ("macaca mulatta", "rhesus macaque", "macaque" -> Macaca mulatta); a species
+    value not in the map keeps its own group. case_sensitive=True turns both off."""
+    by_organism = f.key == "species" and tax is not None and not case_sensitive
+
+    def group(v: str) -> str:
+        if by_organism:
+            tid = tax.owner(" ".join(v.lower().split()))
+            if tid is not None:
+                return f"taxon:{tid}"
+        return v if case_sensitive else v.casefold()
+
+    t = _Tally(Counter(), {}, {}, 0)
     for i in ids:
         rec = recs.get(i)
-        raw = [v.strip() for v in values_in_record(rec, f)] if rec else []
-        keys = {v if case_sensitive else v.casefold(): v for v in raw if v}
-        if not keys:
-            missing += 1
-        for k, v in keys.items():
-            counter[k] += 1
-            spellings.setdefault(k, Counter())[v] += 1
-    return counter, spellings, missing
+        values = [v.strip() for v in values_in_record(rec, f)] if rec else []
+        groups: dict[str, set[str]] = {}
+        for v in values:
+            if v:
+                groups.setdefault(group(v), set()).add(v)
+        if not groups:
+            t.missing += 1
+        for k, vs in groups.items():
+            t.counter[k] += 1
+            for v in vs:
+                t.raw.setdefault(k, Counter())[v] += 1
+            for sp in {v if case_sensitive else v.casefold() for v in vs}:
+                t.spelling.setdefault(k, Counter())[sp] += 1
+    return t
 
 
-def _buckets(counter: Counter[str], spellings: dict[str, Counter[str]], top: int) -> list[ValueCount]:
-    return [
-        ValueCount(value=spellings[k].most_common(1)[0][0], count=c,
-                   variants=sorted(spellings[k]) if len(spellings[k]) > 1 else [])
-        for k, c in counter.most_common(max(1, top))
-    ]
+def _buckets(t: _Tally, top: int, tax: Taxonomy | None = None) -> list[ValueCount]:
+    out = []
+    for k, c in t.counter.most_common(max(1, top)):
+        raw = t.raw[k]
+        if k.startswith("taxon:"):
+            tid = int(k.removeprefix("taxon:"))
+            rec = tax.taxa[tid]
+            # Display each spelling the way it is most often stored.
+            shown = {sp: max((v for v in raw if v.casefold() == sp), key=lambda v: raw[v])
+                     for sp in t.spelling[k]}
+            out.append(SpeciesCount(
+                value=rec["scientific_name"], count=c, taxon_id=f"NCBI:txid{tid}",
+                common_name=(rec.get("common_names") or [None])[0],
+                spellings={shown[sp]: n for sp, n in t.spelling[k].most_common()},
+                variants=sorted(raw) if len(raw) > 1 else []))
+        else:
+            out.append(ValueCount(value=raw.most_common(1)[0][0], count=c,
+                                  variants=sorted(raw) if len(raw) > 1 else []))
+    return out
 
 
 async def count_by_field(
@@ -441,23 +501,39 @@ async def count_by_field(
     BIL values are not normalized ("Mouse" and "mouse" both occur), so by
     default values are grouped case-insensitively and shown with their most
     common spelling. At most `max_records` records are read (default:
-    ``Settings.stats_limit``).
+    ``Settings.stats_limit``). EXACT_FIELDS filters (sex) are checked against
+    the records read, as in search().
     """
     f = resolve(field)
+    notes: list[str] = []
+    exact: list[tuple[Field, list[str]]] = []
     if bildids:
         ids = list(dict.fromkeys(bildids))
     else:
-        ids = (await matching_ids(client, filters, text, tax=tax)).ids
-    considered = ids[: max_records or client.s.stats_limit]
-    recs = await client.retrieve_many(considered)
-    counter, spellings, missing = _tally(recs, considered, f, case_sensitive)
+        m = await matching_ids(client, filters, text, tax=tax)
+        ids, exact = m.ids, _exact_filters(m.norm)
+        notes += [r["message"] for r in m.species_report if not r["resolved"]]
+    read = ids[: max_records or client.s.stats_limit]
+    truncated = len(ids) > len(read)
+    recs = await client.retrieve_many(read)
+    considered = [i for i in read if i in recs]
+    if exact:
+        before = len(considered)
+        considered = [i for i in considered if _record_matches_exact(recs[i], exact)]
+        if before and not considered:
+            notes.append(_emptied_note(exact, before))
+        if truncated:
+            notes.append(f"Only {len(read)} of {len(ids)} records were read. {_filter_text(exact)} was checked on "
+                         f"those; datasets_total ({len(ids)}) is not checked and also counts substring matches.")
+    t = _tally(recs, considered, f, case_sensitive, tax or default_taxonomy())
     return FieldCounts(
         field=f.key,
         datasets_considered=len(considered),
-        datasets_total=len(ids),
-        truncated=len(ids) > len(considered),
-        missing_value=missing,
-        buckets=_buckets(counter, spellings, top),
+        datasets_total=len(ids) if truncated else len(considered),
+        truncated=truncated,
+        missing_value=t.missing,
+        buckets=_buckets(t, top, tax or default_taxonomy()),
+        notes=notes,
     )
 
 

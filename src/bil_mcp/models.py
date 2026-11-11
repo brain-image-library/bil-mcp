@@ -54,9 +54,19 @@ class FilterStat(BaseModel):
 
 
 class ValueCount(BaseModel):
-    value: str
-    count: int
-    variants: list[str] = Field(default=[], description="Spellings merged into this bucket")
+    value: str = Field(description="The value. Usable as a filter")
+    count: int = Field(description="Datasets with this value (each dataset counted once)")
+    variants: list[str] = Field(default=[], description="Exact stored values merged into this bucket")
+
+
+class SpeciesCount(ValueCount):
+    """A species bucket: one organism, with every BIL spelling of it."""
+    value: str = Field(description="The organism's NCBI scientific name. Usable as a species filter")
+    taxon_id: str | None = Field(default=None, description="NCBI taxon ID of the organism")
+    common_name: str | None = Field(default=None, description="NCBI common name")
+    spellings: dict[str, int] = Field(
+        default={}, description="Each BIL spelling of this organism (case ignored) and its datasets. "
+                                "A dataset stored under two spellings counts in both")
 
 
 class Breakdown(BaseModel):
@@ -64,13 +74,13 @@ class Breakdown(BaseModel):
                                         "filters to narrow the search to one value")
     distinct_values: int
     missing_value: int = Field(description="Datasets with no value for this field")
-    top: list[ValueCount] = Field(description="Most common values, with the number of datasets for each")
+    top: list[Union[SpeciesCount, ValueCount]] = Field(description="Most common values, with the number of datasets for each")
 
 
 class SearchResult(BaseModel):
     total: int = Field(description="Number of datasets matching ALL filters")
-    match_mode: str
-    verified: bool = Field(description="True if every hit was checked against full metadata (match='exact')")
+    verified: bool = Field(description="True if the sex filter was checked against the full records (sex is "
+                                       "matched exactly; other filters as substrings)")
     records_fetched: bool = Field(description="False when total is above the automatic limit: then there are "
                                               "no breakdowns or rows; see next_steps")
     filters: list[FilterStat] = Field(description="Per filter: how many datasets it matches on its own")
@@ -103,7 +113,8 @@ class FieldCounts(BaseModel):
     datasets_total: int
     truncated: bool
     missing_value: int = Field(description="Datasets with no value for this field")
-    buckets: list[ValueCount]
+    buckets: list[Union[SpeciesCount, ValueCount]]
+    notes: list[str] = []
 
 
 class RelatedGroup(BaseModel):

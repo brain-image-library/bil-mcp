@@ -130,9 +130,12 @@ How to work well with these tools:
   all work. The result's species_report says which BIL species strings were queried and which related
   names were left out (e.g. 'spiny mouse'); tell the user. A term that is not an organism BIL holds
   returns 0 without querying, plus the list of organisms BIL does hold.
-- Other filters match as case-insensitive SUBSTRING ('sex=male' also matches 'Female'); use
-  match='exact' to check against full metadata. A dataset matches if ANY of its specimens matches;
-  specimen_sex on each row shows the mix (e.g. 'male 8 / female 4').
+- sex is matched exactly against the records ('Male' does not match 'Female'). Above the automatic
+  limit the records are not read, so the total for a sex filter is an upper bound; next_steps says so.
+  A dataset matches if ANY of its specimens matches; specimen_sex on each row shows the mix
+  (e.g. 'male 8 / female 4').
+- All other filters match as case-insensitive SUBSTRING: 'BICAN' finds
+  'Brain Initiative Cell Atlas Network (BICAN)'.
 - BICAN datasets carry donor/tissue/section ids in Specimen.linkage; find_related_datasets
   follows them.
 - If a search returns 0 hits, tell the user which filter emptied it (see the result's notes) and
@@ -198,11 +201,6 @@ FilterDict = Annotated[
 ]
 
 
-MatchArg = Annotated[
-    Literal["contains", "exact"],
-    Field(description="'contains' = BIL's substring match; 'exact' = keep a dataset only if a specimen/field "
-                      "value equals the filter value (needs the records)"),
-]
 TextArg = Annotated[str | None, Field(description="Free text searched across all metadata")]
 TextModeArg = Annotated[Literal["all", "any"], Field(description="'all' = every word must match")]
 FetchAllArg = Annotated[
@@ -216,7 +214,6 @@ async def search_datasets(
     filters: FilterDict = None,
     text: TextArg = None,
     text_mode: TextModeArg = "all",
-    match: MatchArg = "contains",
     fetch_all: FetchAllArg = False,
 ) -> SearchResult:
     """Search BIL datasets by metadata filters and/or free text.
@@ -227,7 +224,7 @@ async def search_datasets(
     Above that it returns counts only; next_steps says what to ask the user.
     """
     try:
-        return await search(_client(ctx), filters, text, text_mode, match, fetch_all, _tax(ctx))
+        return await search(_client(ctx), filters, text, text_mode, fetch_all, _tax(ctx))
     except Exception as e:
         raise _tool_error(e) from e
 
@@ -270,7 +267,6 @@ async def get_dataset_summaries(
     filters: FilterDict = None,
     text: TextArg = None,
     text_mode: TextModeArg = "all",
-    match: MatchArg = "contains",
     fetch_all: FetchAllArg = False,
     limit: Annotated[int, Field(ge=1, le=100, description="Search mode: datasets per page")] = 20,
     offset: Annotated[int, Field(ge=0, description="Search mode: skip this many (newest first)")] = 0,
@@ -278,13 +274,13 @@ async def get_dataset_summaries(
 ) -> SummaryPage:
     """Summaries of chosen datasets, or one page of a search's matches.
 
-    Give bildids (all are returned, in order), OR the same filters/text/match as
+    Give bildids (all are returned, in order), OR the same filters/text as
     search_datasets to page through its matches newest first with limit/offset.
     """
     if not (bildids or filters or text):
         raise ToolError("Give bildids, or filters/text to page through a search.")
     try:
-        return await dataset_summaries(_client(ctx), bildids, filters, text, text_mode, match, fetch_all,
+        return await dataset_summaries(_client(ctx), bildids, filters, text, text_mode, fetch_all,
                                        limit, offset, detail, _tax(ctx))
     except Exception as e:
         raise _tool_error(e) from e

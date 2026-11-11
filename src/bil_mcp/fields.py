@@ -53,7 +53,7 @@ FIELDS: tuple[Field, ...] = (
     _F("species", "Specimen", "specimen", "species", "Species common name.",
        ("Mouse", "Human", "Macaque", "Marmoset", "Zebrafish")),
     _F("ncbitaxonomy", "Specimen", "specimen", "ncbitaxonomy", "NCBI taxonomy id.", ("NCBI:txid10090",)),
-    _F("sex", "Specimen", "specimen", "sex", "Specimen sex. Use match='exact' (male is a substring of Female).",
+    _F("sex", "Specimen", "specimen", "sex", "Specimen sex. Matched exactly by the server (Male does not match Female).",
        ("Male", "Female", "Unknown")),
     _F("age", "Specimen", "specimen", "age", "Age value (number as text; see ageunit)."),
     _F("ageunit", "Specimen", "specimen", "ageunit", "Unit for age.", ("Days", "Years")),

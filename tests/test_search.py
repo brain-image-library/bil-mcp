@@ -1,4 +1,4 @@
-"""Search composition: intersections, OR lists, exact matching, value counts, linkage."""
+"""Search composition: intersections, OR lists, exact sex matching, value counts, linkage."""
 
 import copy
 
@@ -37,14 +37,29 @@ async def test_list_value_is_ored(client):
     assert r.total == 1
 
 
-async def test_substring_trap_and_exact_fix(client):
-    # 'Male' is a substring of 'Female' -> rut (Female) sneaks in with contains.
-    loose = await search(client, {"sex": "Male"})
-    strict = await search(client, {"sex": "Male"}, match="exact")
-    assert "rut" in ids(loose)
-    assert "rut" not in ids(strict) and strict.verified
-    assert strict.total == 3  # ace-boo-sag, ace-lot-web, ace-lot-wet
-    assert any("substring" in n.lower() for n in loose.notes)
+async def test_sex_is_always_exact(client, fake):
+    # 'Male' is a substring of 'Female': BIL returns rut (Female) too; the server drops it.
+    r = await search(client, {"sex": "Male"})
+    assert any("sex=Male" in c for c in fake.calls)
+    assert "rut" not in ids(r) and r.verified
+    assert r.total == 3  # ace-boo-sag, ace-lot-web, ace-lot-wet
+
+
+async def test_sex_exact_does_not_tighten_other_filters(client):
+    # The bug this design fixes: an exact check on consortium turned "BICAN" into 0 datasets.
+    r = await search(client, {"sex": "Male", "consortium": "BICAN"})
+    assert r.total > 0 and all(d.specimen_sex.startswith("male") for d in r.datasets)
+
+
+async def test_note_says_when_the_sex_check_emptied_the_search(client):
+    r = await search(client, {"sex": "ale"})  # substring of Male and Female, equal to neither
+    assert r.total == 0
+    assert any("none has a specimen with exactly sex=ale" in n for n in r.notes)
+
+
+async def test_count_by_field_checks_sex_too(client):
+    f = await count_by_field(client, "species", {"sex": "Male"})
+    assert f.datasets_total == f.datasets_considered == 3
 
 
 async def test_text_all_vs_any(client):
@@ -94,7 +109,7 @@ async def test_sex_mix_per_dataset_and_in_rows():
     spec.append({**spec[0], "sex": "Female"})  # make one dataset mixed-sex
     c = BILClient(Settings(max_retries=0), transport=httpx.MockTransport(FakeBIL(recs)))
     try:
-        r = await search(c, {"sex": "Male"}, match="exact")
+        r = await search(c, {"sex": "Male"})
     finally:
         await c.aclose()
     assert r.specimen_sex_mix == {"male only": 2, "mixed": 1}  # ANY specimen matches: mixed stays in
@@ -111,10 +126,11 @@ async def test_above_limit_returns_counts_and_asks(fake):
         assert not any(call.startswith("POST") for call in fake.calls)  # no records read
         steps = " ".join(r.next_steps)
         assert "fetch_all=true" in steps and "cached" in steps and "narrowing" in steps
-        assert "match='exact'" not in steps  # no substring-prone filter here
-        sex = await search(c, {"sex": "Male"}, match="exact")
+        assert "upper bound" not in steps  # no sex filter here
+        sex = await search(c, {"sex": "Male"})
         assert not sex.records_fetched and not sex.verified
-        assert any("match='exact'" in n and "not make this set smaller" in n for n in sex.next_steps)
+        assert any("upper bound" in n for n in sex.next_steps)
+        assert any("sex=Male is not checked yet" in n for n in sex.notes)
         with pytest.raises(SearchError, match="fetch_all"):
             await dataset_summaries(c, filters={"technique": "MERFISH"})
 
@@ -145,7 +161,7 @@ async def test_summary_fields(client):
 
 async def test_value_counts_merge_case_variants(client):
     f = await count_by_field(client, "species", {"technique": "MERFISH"})
-    mouse = next(b for b in f.buckets if b.value.lower() == "mouse")
+    mouse = next(b for b in f.buckets if getattr(b, "taxon_id", None) == "NCBI:txid10090")
     assert mouse.count == 4 and set(mouse.variants) == {"Mouse", "mouse"}
     f2 = await count_by_field(client, "species", {"technique": "MERFISH"}, case_sensitive=True)
     assert {b.value for b in f2.buckets} >= {"Mouse", "mouse"}
@@ -194,9 +210,9 @@ async def test_unknown_species_returns_nothing_and_queries_nothing(client, fake)
     assert any("BIL was not queried" in n for n in r.notes)
 
 
-async def test_species_exact_mode_keeps_synonym_strings(client):
-    # 'human' resolves to Homo sapiens; exact mode must not re-filter on the literal word.
-    r = await search(client, {"species": "Homo sapiens"}, match="exact")
+async def test_species_scientific_name_finds_common_name_records(client):
+    # The fixture's human record says "human"; "Homo sapiens" must still find it.
+    r = await search(client, {"species": "Homo sapiens"})
     assert r.total == 1 and r.datasets[0].bildid == "ace-can-ill"
 
 
@@ -215,3 +231,66 @@ async def test_filter_values_are_regex_escaped(client, fake):
 
 async def test_escaping_keeps_substring_behaviour(client):
     assert (await search(client, {"technique": "merf"})).total == 5
+
+
+# ---------- species grouped by organism in breakdowns and count_by_field ----------
+def _client_with_species(spellings: dict[str, list[str]]) -> BILClient:
+    """Fixture records with their specimen species replaced (bildid -> species of each specimen)."""
+    recs = copy.deepcopy(RECORDS)
+    for bid, species in spellings.items():
+        template = recs[bid]["Specimen"][0]
+        recs[bid]["Specimen"] = [{**template, "species": s} for s in species]
+    return BILClient(Settings(max_retries=0), transport=httpx.MockTransport(FakeBIL(recs)))
+
+
+MACAQUE_SPELLINGS = {
+    "ace-ban-win": ["Macaca mulatta"], "ace-boo-sag": ["Macaca mulatta"], "ace-lot-web": ["rhesus macaque"],
+    "ace-lot-wet": ["Rhesus Macaque"], "rut": ["macaque"], "ace-can-ill": ["pig-tailed macaque"],
+}
+
+
+async def test_species_breakdown_groups_by_organism_with_spellings():
+    c = _client_with_species(MACAQUE_SPELLINGS)
+    try:
+        r = await search(c, {"species": "macaque"})
+    finally:
+        await c.aclose()
+    sp = next(b for b in r.breakdowns if b.filter_key == "species")
+    assert sp.distinct_values == 2  # two organisms, five stored spellings
+    mulatta, nemestrina = sp.top
+    assert (mulatta.value, mulatta.taxon_id, mulatta.count) == ("Macaca mulatta", "NCBI:txid9544", 5)
+    assert mulatta.spellings == {"Macaca mulatta": 2, "rhesus macaque": 2, "macaque": 1}  # case merged
+    assert (nemestrina.value, nemestrina.count, nemestrina.spellings) == (
+        "Macaca nemestrina", 1, {"pig-tailed macaque": 1})
+
+
+async def test_count_by_field_groups_species_and_counts_each_dataset_once():
+    c = _client_with_species({"rut": ["macaca mulatta", "rhesus macaque"]})  # one dataset, two spellings
+    try:
+        f = await count_by_field(c, "species", bildids=["rut"])
+    finally:
+        await c.aclose()
+    b, = f.buckets
+    assert b.count == 1 and b.spellings == {"macaca mulatta": 1, "rhesus macaque": 1}
+
+
+async def test_unmapped_species_value_keeps_its_own_bucket():
+    c = _client_with_species({"rut": ["axolotl"]})
+    try:
+        f = await count_by_field(c, "species", bildids=["rut"])
+    finally:
+        await c.aclose()
+    assert [(b.value, type(b).__name__) for b in f.buckets] == [("axolotl", "ValueCount")]  # no organism fields
+
+
+async def test_case_sensitive_keeps_raw_species_values(client):
+    f = await count_by_field(client, "species", {"technique": "MERFISH"}, case_sensitive=True)
+    assert all(type(b).__name__ == "ValueCount" for b in f.buckets)
+
+
+def test_every_organism_name_in_a_breakdown_works_as_a_filter():
+    """Breakdown rows say 'add {filter_key: value}'; for species the value must resolve back to that organism."""
+    from bil_mcp.search import default_taxonomy
+    tax = default_taxonomy()
+    for tid in tax.holdings:
+        assert tax.resolve(tax.taxa[tid]["scientific_name"]).organisms == [tid]

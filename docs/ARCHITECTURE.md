@@ -41,6 +41,7 @@ and tested without a server.
 | D10 | Unknown tool arguments are rejected (middleware in `strict.py`); schemas carry `additionalProperties: false` | The SDK's default silently drops misnamed arguments (`max_results` instead of `limit`), so the model gets default behaviour and no warning. mcp 2.3 has no setting for this, so it goes through the public `MCPServer.middleware` hook | Accept the SDK default |
 | D9 | Ids sorted by bildid, rows ordered newest first | BIL returns ids in no stable order; sorting makes results reproducible. Ordering by date needs the records, which D11 now fetches anyway | Paging over bare ids |
 | D11 | Search reads every record up to `stats_limit` (2000, so the automatic wait stays under 5 s) and returns breakdowns + 20 brief rows, never all records | GETs (ids) are cheap; POSTs cost 0.3–1 s per round of 4×200 records. Fetching is fast, but sending records to the model is not: 1000 summaries ≈ 575k chars. So the server reads everything and returns a small result. Above the limit it returns counts and `next_steps`, and the agent asks the user (narrow, or `fetch_all`). Records stay in the cache, so narrowing afterwards needs no POSTs | `limit`/`offset` pages plus up to 500 bare ids (the old design: ~14k chars at `limit=10`, mostly ids) |
+| D12 | `sex` is always matched exactly by the server (against the records, case ignored); every other filter matches as a substring; no `match` option | Substring matching is always wrong for sex ("male" is inside "Female") and right for text fields ("BICAN" finds "Brain Initiative Cell Atlas Network (BICAN)"). Identifiers work as substrings too, since people paste the full id | A `match="exact"` option for all filters: it turned `consortium=BICAN` into 0 datasets without saying why |
 
 ## BIL API facts the code depends on
 
@@ -81,8 +82,10 @@ every offline test passed. The live test caught it.
 3. It intersects the two id sets (1273 ∩ 280 → 40) and sorts them.
 4. `search.resolve_set`: 40 ≤ `stats_limit`, so it retrieves all 40 records (`POST /retrieve`, one
    batch; cached). Above the limit it stops here and returns counts + `next_steps`.
-5. (If `match="exact"`) it keeps only records whose field equals the value (any specimen).
-6. It builds breakdowns of all matches and brief rows for the 20 newest.
+5. If there is a `sex` filter, it keeps only records with a specimen whose sex equals the value
+   (D12). Above the limit this check can't run, and `next_steps` says the total is an upper bound.
+6. It builds breakdowns of all matches and brief rows for the 20 newest. The species breakdown is
+   grouped by organism (via `species_map.yaml`), with each BIL spelling's own count in `spellings`.
 7. It returns a `SearchResult`. The SDK serializes it as `structuredContent`, plus a text copy for
    older clients.
 

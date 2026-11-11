@@ -132,9 +132,9 @@ async def test_prompts(connect):
 
 async def test_unknown_argument_is_rejected_with_suggestion(connect):
     async with connect() as mcp_client:
-        r = await mcp_client.call_tool("search_datasets", {"filters": {"species": "Human"}, "mtch": "exact"})
+        r = await mcp_client.call_tool("search_datasets", {"filters": {"species": "Human"}, "fetch_al": True})
         assert r.is_error
-        assert "Unknown argument(s) for search_datasets: 'mtch' (did you mean 'match'?)" in r.content[0].text
+        assert "Unknown argument(s) for search_datasets: 'fetch_al' (did you mean 'fetch_all'?)" in r.content[0].text
         tools = {t.name: t for t in (await mcp_client.list_tools()).tools}
         assert all(t.input_schema.get("additionalProperties") is False for t in tools.values())
 
@@ -143,9 +143,16 @@ async def test_tool_calls_are_logged_with_arguments(connect, caplog):
     import logging
     caplog.set_level(logging.INFO, logger="bil_mcp.audit")
     async with connect() as mcp_client:
-        await mcp_client.call_tool("search_datasets", {"text": "xenium", "match": "exact"})
+        await mcp_client.call_tool("search_datasets", {"text": "xenium", "text_mode": "any"})
         await mcp_client.call_tool("search_datasets", {"filters": {"species": "Human"}, "limt": 5})
     lines = [r.getMessage() for r in caplog.records if r.name == "bil_mcp.audit"]
-    assert any('search_datasets {"text": "xenium", "match": "exact"}' in l for l in lines)
+    assert any('search_datasets {"text": "xenium", "text_mode": "any"}' in l for l in lines)
     assert any(l.startswith("tool done") and " ok in " in l for l in lines)
     assert any(l.startswith("tool done") and " ERROR in " in l for l in lines)  # unknown argument
+
+
+async def test_match_is_no_longer_an_argument(connect):
+    async with connect() as mcp_client:
+        tools = {t.name: t for t in (await mcp_client.list_tools()).tools}
+        assert "match" not in tools["search_datasets"].input_schema["properties"]
+        assert "match" not in tools["get_dataset_summaries"].input_schema["properties"]
